@@ -21,6 +21,8 @@ bee run 或 fresh
 go build main.go
 # 打包（此时会打包成Linux上可运行的二进制文件，不带后缀名的文件） 
 #### 在项目根目录cmd进入执行
+```
 SET GOOS=linux
 SET GOARCH=amd64
 go build
+```
