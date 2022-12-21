@@ -43,15 +43,7 @@ func Getlist(context *gin.Context) {
 			groupname, _ := DB().Table("merchant_micweb_group").Where("id", val["cid"]).Value("name")
 			val["groupname"] = groupname
 			//获取轻站id
-			micweb_data, _ := DB().Table("merchant_micweb").Where("member_id", val["id"]).Fields("id,status,title").First()
-			//获取入口首页id
-			homeid, _ := DB().Table("merchant_micweb_item").Where("micweb_id", micweb_data["id"]).Where("ishome", 1).Value("id")
-			if homeid != nil {
-				val["homeid"] = homeid
-			} else {
-				nhomeid, _ := DB().Table("merchant_micweb_item").Where("micweb_id", micweb_data["id"]).Value("id")
-				val["homeid"] = nhomeid
-			}
+			micweb_data, _ := DB().Table("client_micweb").Where("cuid", val["id"]).Fields("id,status,title").First()
 			//发布状态
 			val["publish_status"] = micweb_data["status"]
 			val["title"] = micweb_data["title"]

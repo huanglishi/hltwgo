@@ -131,7 +131,7 @@ func SaveMicwebPabe(context *gin.Context) {
 		parameter["uid"] = user.ID
 		parameter["createtime"] = time.Now().Unix()
 		parameter["accountID"] = user.Accountid
-		parameter["uuid"] = utils.GetSnowflakeId()
+		parameter["uuid"] = utils.Getuuid()
 		if _, ok := parameter["micweb_id"]; !ok { //不传站点信息在获取
 			micweb_id, _ := DB().Table("client_micweb").Where("accountID", user.Accountid).Where("is_select", 1).Value("id")
 			parameter["micweb_id"] = micweb_id

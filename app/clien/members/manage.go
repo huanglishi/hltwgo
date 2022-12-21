@@ -15,6 +15,7 @@ import (
 func GetList(context *gin.Context) {
 	uname := context.DefaultQuery("name", "")
 	status := context.DefaultQuery("status", "0")
+	cid := context.DefaultQuery("cid", "0")
 	page := context.DefaultQuery("page", "1")
 	_pageSize := context.DefaultQuery("pageSize", "10")
 	pageNo, _ := strconv.Atoi(page)
@@ -28,6 +29,10 @@ func GetList(context *gin.Context) {
 		whereMap.Where("status", status)
 		whereMap2.Where("status", status)
 	}
+	if cid != "0" {
+		whereMap.Where("cid", cid)
+		whereMap2.Where("cid", cid)
+	}
 	if uname != "" {
 		whereMap.Where("name", "like", "%"+uname+"%")
 		whereMap2.Where("name", "like", "%"+uname+"%")
@@ -38,7 +43,7 @@ func GetList(context *gin.Context) {
 	} else {
 		for _, val := range list {
 			//分组
-			groupname, _ := DB().Table("client_member_group").Where("id", val["cid"]).Pluck("name")
+			groupname, _ := DB().Table("client_member_group").Where("id", val["cid"]).Value("name")
 			if groupname != nil {
 				val["groupname"] = groupname
 			} else {
@@ -57,7 +62,7 @@ func GetList(context *gin.Context) {
 }
 
 // 添加
-func SaveArticle(context *gin.Context) {
+func SaveMember(context *gin.Context) {
 	//获取post传过来的data
 	body, _ := ioutil.ReadAll(context.Request.Body)
 	var parameter map[string]interface{}

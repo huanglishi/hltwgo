@@ -41,16 +41,18 @@ func GetInfo(context *gin.Context) {
 		userdata["avatar"] = Toolconf.AppConfig.String("domain") + "/common/uploadfile/getimage?url=" + userdata["avatar"].(string)
 	}
 	mwurl, _ := DB().Table("merchant_config").Where("keyname", "mwurl").Value("keyvalue")
+	tplpreviewurl, _ := DB().Table("merchant_config").Where("keyname", "tplpreviewurl").Value("keyvalue")
 	//获取用户权限
 	results.Success(context, "登录成功！", map[string]interface{}{
-		"userId":   userdata["id"],
-		"username": userdata["username"],
-		"token":    token,
-		"mwurl":    mwurl,
-		"realName": userdata["name"],
-		"avatar":   userdata["avatar"],
-		"desc":     "",
-		"roles":    roles,
+		"userId":        userdata["id"],
+		"username":      userdata["username"],
+		"token":         token,
+		"mwurl":         mwurl,
+		"tplpreviewurl": tplpreviewurl, //轻站模板预览地址
+		"realName":      userdata["name"],
+		"avatar":        userdata["avatar"],
+		"desc":          "",
+		"roles":         roles,
 	}, nil)
 }
 

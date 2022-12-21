@@ -20,10 +20,10 @@ func RandString(l int) string {
 }
 
 // 获取UUID 生成雪花ID
-func Getuuid() int64 {
+func Getuuid() string {
 	node, err := snowflake.NewNode(1)
 	if err != nil {
-		return 0
+		return Getuuid()
 	}
-	return node.Generate().Int64()
+	return node.Generate().String()
 }

@@ -49,6 +49,20 @@ func GetGroupList(context *gin.Context) {
 	}
 }
 
+// 获取表单选择列表
+func GetGroupFormList(context *gin.Context) {
+	//当前用户
+	getuser, _ := context.Get("user")
+	user := getuser.(*utils.UserClaims)
+	keyword := context.DefaultQuery("keyword", "")
+	MDB := DB().Table("client_member_group")
+	if keyword != "" {
+		MDB = MDB.Where("name", "like", "%"+keyword+"%")
+	}
+	list, _ := MDB.Fields("id,name").Where("cuid", user.ClientID).Order("weigh desc ,id desc").Get()
+	results.Success(context, "表单选择分组数据！", list, nil)
+}
+
 // 添加
 func SaveGroup(context *gin.Context) {
 	//获取post传过来的data

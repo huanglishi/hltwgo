@@ -48,6 +48,8 @@ func ApiMwebh5(R *gin.Engine) {
 			//整站
 			webdataPath.GET("/getWebtpl", mwebh5.GetWebtpl)
 			webdataPath.GET("/getWebtplPage", mwebh5.GetWebtplPage)
+			//功能木块接口
+			webdataPath.GET("/searchAll", mwebh5.SearchAll)
 
 		}
 		//微信支付

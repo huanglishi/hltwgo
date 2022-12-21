@@ -336,6 +336,7 @@ func ApiClient(R *gin.Engine) {
 			groupPath := memberPath.Group("/group")
 			{
 				groupPath.GET("/getList", members.GetGroupList)
+				groupPath.GET("/getGroupList", members.GetGroupFormList)
 				groupPath.POST("/saveGroup", members.SaveGroup)
 				groupPath.POST("/upStatus", members.UpGroupStatus)
 				groupPath.DELETE("/delGroup", members.DelGroup)
@@ -344,6 +345,8 @@ func ApiClient(R *gin.Engine) {
 			managePath := memberPath.Group("/manage")
 			{
 				managePath.GET("/getList", members.GetList)
+				managePath.POST("/upLock", members.UpLock)
+				managePath.POST("/saveMember", members.SaveMember)
 			}
 		}
 		//6.表单

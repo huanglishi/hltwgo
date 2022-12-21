@@ -19,7 +19,7 @@ func Getlist(context *gin.Context) {
 	status := context.DefaultQuery("status", "1")
 	pageNo, _ := strconv.Atoi(page)
 	pageSize, _ := strconv.Atoi(_pageSize)
-	MDB := DB().Table("merchant_micweb").Where("status", status)
+	MDB := DB().Table("client_micweb").Where("status", status)
 	if title != "" {
 		MDB = MDB.Where("title", "like", "%"+title+"%")
 	}
@@ -30,9 +30,6 @@ func Getlist(context *gin.Context) {
 		for _, val := range list {
 			userinfo, _ := DB().Table("merchant_user").Where("id", val["accountID"]).Fields("mobile,name").First()
 			val["userinfo"] = userinfo
-			//获取入口id
-			webhome, _ := DB().Table("merchant_micweb_item").Where("micweb_id", val["id"]).Where("ishome", 1).Value("id")
-			val["webhomeid"] = webhome
 		}
 		var totalCount int64
 		totalCount, _ = MDB.Count()
