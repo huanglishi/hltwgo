@@ -28,6 +28,7 @@ func ApiMwebh5(R *gin.Engine) {
 			webdataPath.GET("/getProduct", mwebh5.GetProduct)
 			//表单字段
 			webdataPath.POST("/saveForm", mwebh5.SaveForm)
+			webdataPath.GET("/getFormField", mwebh5.GetFormField)
 			//登录
 			webdataPath.POST("/register", mwebh5.Register)
 			webdataPath.POST("/lonin", mwebh5.Lonin)

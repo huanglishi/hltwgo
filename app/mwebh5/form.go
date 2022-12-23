@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gohouse/gorose/v2"
 )
 
 // 提交表单数据
@@ -44,6 +45,26 @@ func SaveForm(context *gin.Context) {
 			results.Failed(context, "添加表单值失败", valerr)
 		} else {
 			results.Success(context, "提交表单", res, nil)
+		}
+	}
+}
+
+// 获取表单字段列表
+func GetFormField(context *gin.Context) {
+	form_id := context.DefaultQuery("form_id", "")
+	if form_id == "" {
+		results.Failed(context, "请传参数form_id", nil)
+	} else {
+		list, err := DB().Table("client_form_item").Where("form_id", form_id).Get()
+		if err != nil {
+			results.Failed(context, "获取表单字段失败", err)
+		} else {
+			rule, Rerr := DB().Table("client_form_rule").Where("form_id", form_id).Get()
+			rulelist := rule
+			if Rerr != nil || rule == nil {
+				rulelist = make([]gorose.Data, 0)
+			}
+			results.Success(context, "获取表单字段和规则", map[string]interface{}{"list": list, "rule": rulelist}, nil)
 		}
 	}
 }

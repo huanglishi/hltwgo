@@ -36,7 +36,7 @@ func GetFiles(context *gin.Context) {
 	}
 	list, err := whereMap.
 		// Limit(pageSize).Page(pageNo).
-		Fields("id,pid,name,title,type,url,filesize,mimetype,storage,cover_url").Order("type desc,weigh asc , id asc").Get()
+		Fields("id,pid,name,title,type,url,filesize,mimetype,storage,cover_url").Order("type desc,weigh desc , id desc").Get()
 	if err != nil {
 		results.Failed(context, "加载数据失败", err)
 	} else {

@@ -133,7 +133,7 @@ func SaveMicwebPabe(context *gin.Context) {
 		parameter["accountID"] = user.Accountid
 		parameter["uuid"] = utils.Getuuid()
 		if _, ok := parameter["micweb_id"]; !ok { //不传站点信息在获取
-			micweb_id, _ := DB().Table("client_micweb").Where("accountID", user.Accountid).Where("is_select", 1).Value("id")
+			micweb_id, _ := DB().Table("client_micweb").Where("cuid", user.ClientID).Where("is_select", 1).Value("id")
 			parameter["micweb_id"] = micweb_id
 		}
 		addId, err := DB().Table("client_micweb_page").Data(parameter).InsertGetId()

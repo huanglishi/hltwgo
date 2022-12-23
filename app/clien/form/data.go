@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"huling/utils/results"
-	utils "huling/utils/tool"
 	"io/ioutil"
 	"strconv"
 
@@ -29,35 +28,46 @@ func GetFormDataList(context *gin.Context) {
 	pageNo, _ := strconv.Atoi(page)
 	pageSize, _ := strconv.Atoi(_pageSize)
 	//当前用户
-	getuser, _ := context.Get("user")
-	user := getuser.(*utils.UserClaims)
-	MDB := DB().Table("client_form_record a").LeftJoin("client_form_value b on a.id = b.record_id")
+	// getuser, _ := context.Get("user")
+	// user := getuser.(*utils.UserClaims)
+	MDB := DB().Table("client_form_record a").LeftJoin("client_form_value b on a.id = b.record_id").Group("record_id")
+	FMDB := DB().Table("client_form_record a").LeftJoin("client_form_value b on a.id = b.record_id").Group("record_id")
 	//填写字段查询
 	if keyword != "" {
 		MDB.Where("value", "like", "%"+keyword+"%")
+		FMDB.Where("value", "like", "%"+keyword+"%")
 	}
 	//用户查询
 	if username != "" {
 		userids, _ := DB().Table("client_member").Where("name", "like", "%"+username+"%").Pluck("id")
 		MDB.WhereIn("member_id", userids.([]interface{}))
+		FMDB.WhereIn("member_id", userids.([]interface{}))
 	}
-	list, err := MDB.Where("form_id", form_id).Where("cuid", user.ClientID).Limit(pageSize).Page(pageNo).Get()
+	list, err := MDB.Where("form_id", form_id).
+		// Where("cuid", user.ClientID).
+		Limit(pageSize).Page(pageNo).Order("createtime desc").Get()
 	if err != nil {
 		results.Failed(context, "加载数据失败", err)
 	} else {
 		//字段赋值
-		fielddata, _ := DB().Table("client_member").Where("form_id", form_id).Pluck("id")
+		fielddata, _ := DB().Table("client_form_item").Where("form_id", form_id).Fields("id,type").Get()
 		for _, val := range list {
-			for _, item := range fielddata.([]interface{}) {
+			for _, item := range fielddata {
 				//字段的key
-				keys := fmt.Sprintf("%v", item)
+				keys := fmt.Sprintf("%v", item["id"])
 				//字段值
-				valuedata, _ := DB().Table("client_form_value").Where("form_item_id", item).Where("record_id", val["record_id"]).Value("value")
-				val[keys] = valuedata
+				valuedata, _ := DB().Table("client_form_value").Where("form_item_id", item["id"]).Where("record_id", val["record_id"]).Value("value")
+				if item["type"] == "checkbox" || item["type"] == "image" {
+					val[keys] = map[string]interface{}{"value": StingToJSON(valuedata), "type": item["type"]}
+				} else {
+					val[keys] = valuedata
+				}
 			}
 		}
 		var totalCount int64
-		totalCount, _ = MDB.Where("form_id", form_id).Where("cuid", user.ClientID).Count()
+		totalCount, _ = FMDB.Where("form_id", form_id).
+			// Where("cuid", user.ClientID).
+			Count()
 		results.Success(context, "获取文章列表", map[string]interface{}{
 			"page":     pageNo,
 			"pageSize": pageSize,

@@ -21,8 +21,11 @@ func Getlist(context *gin.Context) {
 	_pageSize := context.DefaultQuery("pageSize", "10")
 	pageNo, _ := strconv.Atoi(page)
 	pageSize, _ := strconv.Atoi(_pageSize)
-	MDB := DB().Table("client_user").Fields("id,cid,avatar,accountID,clientid,name,username,mobile,email,status,validtime,remark,company,createtime")
-	MDBCON := DB().Table("client_user")
+	getuser, _ := context.Get("user")
+	user := getuser.(*utils.UserClaims)
+	MDB := DB().Table("client_user").Where("accountID", user.Accountid).
+		Fields("id,cid,avatar,accountID,clientid,name,username,mobile,email,status,validtime,remark,company,createtime")
+	MDBCON := DB().Table("client_user").Where("accountID", user.Accountid)
 	if cid != "0" {
 		sub_cids := GetAllChilId(cid)
 		allsubids := append(sub_cids, cid)
