@@ -157,6 +157,7 @@ func ApiClient(R *gin.Engine) {
 				webeditPath.GET("/getFormRule", webedit.GetFormRule)
 				//轻站信息
 				webeditPath.POST("/saveFooterTabBar", webedit.SaveFooterTabBar)
+				webeditPath.POST("/saveMicweb", webedit.SaveMicweb)
 				webeditPath.GET("/getMicweb", webedit.GetMicweb)
 				webeditPath.GET("/getMicwebPage", webedit.GetMicwebPage)
 				webeditPath.DELETE("/delMicwebPage", webedit.DelMicwebPage)
@@ -327,6 +328,8 @@ func ApiClient(R *gin.Engine) {
 			orderPath := productPath.Group("/order")
 			{
 				orderPath.GET("/getList", product.GetOrderList)
+				orderPath.GET("/getOrder", product.GetOrder)
+				orderPath.POST("/upOrder", product.UpOrder)
 			}
 		}
 		//5.会员

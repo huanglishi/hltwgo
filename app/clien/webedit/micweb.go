@@ -43,7 +43,7 @@ func GetMicweb(context *gin.Context) {
 			return
 		}
 	}
-	data, err := DB().Table("client_micweb").Where("id", micweb_id).Fields("id,title,status,approval_err,footer_tabbar").First()
+	data, err := DB().Table("client_micweb").Where("id", micweb_id).Fields("id,title,des,status,approval_err,footer_tabbar,top_tabbar,side_tabbar").First()
 	if err != nil {
 		results.Failed(context, "获取微站信息失败", err)
 	} else {
@@ -120,11 +120,15 @@ func SaveMicwebPabe(context *gin.Context) {
 		f_id = parameter["id"].(float64)
 	}
 	//JSON转字符串
-	if parameter["component"] != nil {
+	if _, ok := parameter["banner"]; ok && parameter["banner"] != nil {
+		parameter["banner"] = JSONMarshalToString(parameter["banner"])
+	}
+	//JSON转字符串
+	if _, ok := parameter["component"]; ok && parameter["component"] != nil {
 		parameter["component"] = JSONMarshalToString(parameter["component"])
 	}
 	//JSON转字符串
-	if parameter["templateJson"] != nil {
+	if _, ok := parameter["templateJson"]; ok && parameter["templateJson"] != nil {
 		parameter["templateJson"] = JSONMarshalToString(parameter["templateJson"])
 	}
 	if f_id == 0 {
@@ -225,15 +229,44 @@ func SaveFooterTabBar(context *gin.Context) {
 	}
 }
 
+// 保存微站内容字段不固定
+func SaveMicweb(context *gin.Context) {
+	body, _ := ioutil.ReadAll(context.Request.Body)
+	var parameter map[string]interface{}
+	_ = json.Unmarshal(body, &parameter)
+	if _, ok := parameter["id"]; !ok || parameter["id"] == "" {
+		results.Failed(context, "参数id不能空", nil)
+	} else {
+		id := parameter["id"]
+		delete(parameter, "id")
+		res, err := DB().Table("client_micweb").
+			Data(parameter).
+			Where("id", id).
+			Update()
+		if err != nil {
+			results.Failed(context, "保存失败", err)
+		} else {
+			results.Success(context, "保存成功！", res, nil)
+		}
+	}
+}
+
 // 删除页面
 func DelMicwebPage(context *gin.Context) {
 	body, _ := ioutil.ReadAll(context.Request.Body)
 	var parameter map[string]interface{}
 	_ = json.Unmarshal(body, &parameter)
+	delpage, _ := DB().Table("client_micweb_page").Where("id", parameter["id"]).Fields("micweb_id,ishome").First()
 	res2, err := DB().Table("client_micweb_page").Where("id", parameter["id"]).Delete()
 	if err != nil {
 		results.Failed(context, "删除页面失败", err)
 	} else {
+		//设置id最小为首页
+		var one int = 1
+		if GetInterfaceToInt(delpage["ishome"]) == one {
+			homeid, _ := DB().Table("client_micweb_page").Where("micweb_id", delpage["micweb_id"]).Order("id asc").Value("id")
+			DB().Table("client_micweb_page").Data(map[string]interface{}{"ishome": 1}).Where("id", homeid).Update()
+		}
 		results.Success(context, "删除页面成功！", res2, nil)
 	}
 }

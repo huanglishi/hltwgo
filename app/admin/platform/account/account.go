@@ -25,7 +25,7 @@ func Getlist(context *gin.Context) {
 	if cid != "0" {
 		MDB.Where("groupid", cid)
 	}
-	list, err := MDB.Where("type", 1).Limit(pageSize).Page(pageNo).Order("id asc").Get()
+	list, err := MDB.Where("type", 1).Limit(pageSize).Page(pageNo).Order("id desc").Get()
 	if err != nil {
 		results.Failed(context, "加载数据失败", err)
 	} else {
