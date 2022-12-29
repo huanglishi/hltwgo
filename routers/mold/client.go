@@ -330,6 +330,7 @@ func ApiClient(R *gin.Engine) {
 				orderPath.GET("/getList", product.GetOrderList)
 				orderPath.GET("/getOrder", product.GetOrder)
 				orderPath.POST("/upOrder", product.UpOrder)
+				orderPath.POST("/upOrderField", product.UpOrderField)
 			}
 		}
 		//5.会员

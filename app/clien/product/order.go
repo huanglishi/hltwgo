@@ -77,3 +77,23 @@ func UpOrder(context *gin.Context) {
 		results.Success(context, msg, res2, nil)
 	}
 }
+
+// 更新字段数据
+func UpOrderField(context *gin.Context) {
+	//获取post传过来的data
+	body, _ := ioutil.ReadAll(context.Request.Body)
+	var parameter map[string]interface{}
+	_ = json.Unmarshal(body, &parameter)
+	id := parameter["id"]
+	delete(parameter, "id")
+	res2, err := DB().Table("client_product_order").Where("id", id).Data(parameter).Update()
+	if err != nil {
+		results.Failed(context, "更新失败！", err)
+	} else {
+		msg := "更新成功！"
+		if res2 == 0 {
+			msg = "暂无数据更新"
+		}
+		results.Success(context, msg, res2, nil)
+	}
+}
