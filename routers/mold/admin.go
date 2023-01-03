@@ -3,6 +3,7 @@ package rmold
 import (
 	"huling/app/admin/account"
 	"huling/app/admin/dept"
+	"huling/app/admin/develop/allconfig"
 	dwebtplgroup "huling/app/admin/dictionary/group"
 	"huling/app/admin/dictionary/teacharticle"
 	tplpagegroup "huling/app/admin/dictionary/tplpage"
@@ -188,6 +189,15 @@ func ApiAdmin(R *gin.Engine) {
 				clientmenuPath.POST("/saveMenu", clientmenu.Add)
 				clientmenuPath.POST("/upMenuLock", clientmenu.UpMenuLock)
 				clientmenuPath.DELETE("/delMenu", clientmenu.Del)
+			}
+			allconfigPath := developPath.Group("/allconfig")
+			{
+				allconfigPath.GET("/getwxinfo", allconfig.Getwxinfo)
+				allconfigPath.POST("/saveWx", allconfig.SaveWx)
+
+				allconfigPath.GET("/getPay", allconfig.GetPay)
+				allconfigPath.POST("/savePay", allconfig.SavePay)
+				allconfigPath.POST("/uploadFile", allconfig.UploadFile)
 			}
 
 		}

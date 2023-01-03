@@ -24,13 +24,13 @@ func GetMicweb(context *gin.Context) {
 		micweb_id = GetInterfaceToInt(micweb_select_id)
 	}
 	if tplid != "0" { //如果是传模板则用模板覆盖-复制
-		tpldata, tplerr := DB().Table("client_micweb_tpl_main").Where("id", tplid).Fields("id,cid,home_id,title,details,type,image,footer_tabbar").First()
+		tpldata, tplerr := DB().Table("client_micweb_tpl_main").Where("id", tplid).Fields("id,cid,home_id,title,details,type,image,footer_tabbar,top_tabbar,side_tabbar").First()
 		if tplerr != nil {
 			results.Failed(context, "获取模板数据失败，导致无法复制模板", tplerr)
 			return
 		}
 		//1更新底部导航
-		_, micweberr := DB().Table("client_micweb").Data(map[string]interface{}{"footer_tabbar": tpldata["footer_tabbar"]}).
+		_, micweberr := DB().Table("client_micweb").Data(map[string]interface{}{"footer_tabbar": tpldata["footer_tabbar"], "top_tabbar": tpldata["top_tabbar"], "side_tabbar": tpldata["side_tabbar"]}).
 			Where("cuid", user.ClientID).Where("is_select", 1).Update()
 		if micweberr != nil {
 			results.Failed(context, "获取站点底部导航失败！", micweberr)
@@ -89,16 +89,21 @@ func copyTplpage(tplid interface{}, micweb_id interface{}, uid interface{}, acco
 		save_arr := []map[string]interface{}{}
 		for _, val := range pagelist {
 			save_arr = append(save_arr, map[string]interface{}{
-				"micweb_id":    micweb_id,
-				"uid":          uid,
-				"accountID":    accountID,
-				"ishome":       val["ishome"],
-				"name":         val["name"],
-				"orderNum":     val["orderNum"],
-				"uuid":         val["uuid"],
-				"templateJson": val["templateJson"],
-				"component":    val["component"],
-				"createtime":   time.Now().Unix(),
+				"micweb_id":          micweb_id,
+				"uid":                uid,
+				"accountID":          accountID,
+				"ishome":             val["ishome"],
+				"name":               val["name"],
+				"orderNum":           val["orderNum"],
+				"uuid":               val["uuid"],
+				"templateJson":       val["templateJson"],
+				"component":          val["component"],
+				"banners":            val["banners"],
+				"show_banner":        val["show_banner"],
+				"show_top_tabbar":    val["show_top_tabbar"],
+				"show_side_tabbar":   val["show_side_tabbar"],
+				"show_footer_tabbar": val["show_footer_tabbar"],
+				"createtime":         time.Now().Unix(),
 			})
 		}
 		DB().Table("client_micweb_page").Data(save_arr).Insert()
@@ -118,10 +123,6 @@ func SaveMicwebPabe(context *gin.Context) {
 	var f_id float64 = 0
 	if parameter["id"] != nil {
 		f_id = parameter["id"].(float64)
-	}
-	//JSON转字符串
-	if _, ok := parameter["banner"]; ok && parameter["banner"] != nil {
-		parameter["banner"] = JSONMarshalToString(parameter["banner"])
 	}
 	//JSON转字符串
 	if _, ok := parameter["component"]; ok && parameter["component"] != nil {

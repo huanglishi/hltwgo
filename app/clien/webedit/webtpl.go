@@ -70,6 +70,12 @@ func SaveWebTpl(context *gin.Context) {
 		if _, ok := parameter["footer_tabbar"]; ok {
 			parameter["footer_tabbar"] = JSONMarshalToString(parameter["footer_tabbar"])
 		}
+		if _, ok := parameter["top_tabbar"]; ok {
+			parameter["top_tabbar"] = JSONMarshalToString(parameter["top_tabbar"])
+		}
+		if _, ok := parameter["side_tabbar"]; ok {
+			parameter["side_tabbar"] = JSONMarshalToString(parameter["side_tabbar"])
+		}
 		addId, err := DB().Table("client_micweb_tpl_main").Data(parameter).InsertGetId()
 		if err != nil {
 			results.Failed(context, "添加失败", err)
@@ -87,14 +93,19 @@ func savealltplpage(micweb_id interface{}, main_id interface{}) {
 	save_arr := []map[string]interface{}{}
 	for _, val := range pagelist {
 		save_arr = append(save_arr, map[string]interface{}{
-			"main_id":      main_id,
-			"item_id":      val["id"],
-			"ishome":       val["ishome"],
-			"name":         val["name"],
-			"orderNum":     val["orderNum"],
-			"uuid":         val["uuid"],
-			"templateJson": val["templateJson"],
-			"component":    val["component"],
+			"main_id":            main_id,
+			"item_id":            val["id"],
+			"ishome":             val["ishome"],
+			"name":               val["name"],
+			"orderNum":           val["orderNum"],
+			"uuid":               val["uuid"],
+			"templateJson":       val["templateJson"],
+			"component":          val["component"],
+			"banners":            val["banners"],
+			"show_banner":        val["show_banner"],
+			"show_top_tabbar":    val["show_top_tabbar"],
+			"show_side_tabbar":   val["show_side_tabbar"],
+			"show_footer_tabbar": val["show_footer_tabbar"],
 		})
 	}
 	DB().Table("client_micweb_tpl_main_page").Data(save_arr).Insert()

@@ -19,14 +19,13 @@ import (
 	"github.com/wechatpay-apiv3/wechatpay-go/utils"
 )
 
-const (
-	mchID                      string = "190000****"                               // 商户号
-	mchCertificateSerialNumber string = "3775B6A45ACD588826D15E583A95F5DD********" // 商户证书序列号
-	mchAPIv3Key                string = "2ab9****************************"         // 商户APIv3密钥
-)
-
 // 1微信支付平台证书
 func Getwechatpay(cgin *gin.Context) {
+	const (
+		mchID                      string = "190000****"                               // 商户号
+		mchCertificateSerialNumber string = "3775B6A45ACD588826D15E583A95F5DD********" // 商户证书序列号
+		mchAPIv3Key                string = "2ab9****************************"         // 商户APIv3密钥
+	)
 	// 使用 utils 提供的函数从本地文件中加载商户私钥，商户私钥会用来生成请求的签名
 	mchPrivateKey, err := utils.LoadPrivateKeyWithPath("/resource/staticfile/merchant/apiclient_key.pem")
 	if err != nil {
@@ -55,6 +54,11 @@ func Getwechatpay(cgin *gin.Context) {
 
 // 2 JSAPI下单 为例
 func Getjsapi(cgin *gin.Context) {
+	const (
+		mchID                      string = "190000****"                               // 商户号
+		mchCertificateSerialNumber string = "3775B6A45ACD588826D15E583A95F5DD********" // 商户证书序列号
+		mchAPIv3Key                string = "2ab9****************************"         // 商户APIv3密钥
+	)
 
 	// 使用 utils 提供的函数从本地文件中加载商户私钥，商户私钥会用来生成请求的签名
 	mchPrivateKey, err := utils.LoadPrivateKeyWithPath("/resource/staticfile/merchant/apiclient_key.pem")
@@ -101,7 +105,11 @@ func Getjsapi(cgin *gin.Context) {
 
 // 3获取h5支付跳转链接
 func Geth5url(cgin *gin.Context) {
-
+	const (
+		mchID                      string = "190000****"                               // 商户号
+		mchCertificateSerialNumber string = "3775B6A45ACD588826D15E583A95F5DD********" // 商户证书序列号
+		mchAPIv3Key                string = "2ab9****************************"         // 商户APIv3密钥
+	)
 	// 使用 utils 提供的函数从本地文件中加载商户私钥，商户私钥会用来生成请求的签名
 	mchPrivateKey, err := utils.LoadPrivateKeyWithPath("/resource/staticfile/merchant/apiclient_key.pem")
 	if err != nil {
@@ -152,13 +160,19 @@ func Geth5url(cgin *gin.Context) {
 
 // 4 基础支付的回调通知
 func Paynotify(cgin *gin.Context) {
+	const (
+		mchID                      string = "190000****"                               // 商户号
+		mchCertificateSerialNumber string = "3775B6A45ACD588826D15E583A95F5DD********" // 商户证书序列号
+		mchAPIv3Key                string = "2ab9****************************"         // 商户APIv3密钥
+	)
 
 	// 使用 utils 提供的函数从本地文件中加载商户私钥，商户私钥会用来生成请求的签名
 	mchPrivateKey, err := utils.LoadPrivateKeyWithPath("/resource/staticfile/merchant/apiclient_key.pem")
 	if err != nil {
 		log.Fatal("load merchant private key error")
 	}
-
+	//支付回调
+	fmt.Println("-----支付回调---------")
 	/************开始支付逻辑************************/
 	ctx := context.Background()
 	// 1. 使用 `RegisterDownloaderWithPrivateKey` 注册下载器

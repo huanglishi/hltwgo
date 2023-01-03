@@ -2,6 +2,7 @@ package rmold
 
 import (
 	"huling/app/mwebh5"
+	"huling/app/mwebh5/wx"
 	"huling/app/mwebh5/wxpay"
 
 	"github.com/gin-gonic/gin"
@@ -58,7 +59,12 @@ func ApiMwebh5(R *gin.Engine) {
 		{
 			//获取h5支付-h5_url
 			wxpayPath.GET("/h5url", wxpay.Geth5url)
-			wxpayPath.POST("/submitOrder", wxpay.SubmitOrder)
+			wxpayPath.GET("/submitOrder", wxpay.SubmitOrder)
+		}
+		//微信sdk
+		wxPath := microwebPath.Group("/wx")
+		{
+			wxPath.GET("/getWxSign", wx.GetWxSign)
 		}
 	}
 

@@ -197,6 +197,9 @@ func ApiClient(R *gin.Engine) {
 				paymentConfigPath.GET("/getPayIinfo", system.GetPayIinfo)
 				paymentConfigPath.POST("/savePay", system.SavePay)
 				paymentConfigPath.POST("/uploadFile", system.UploadFile)
+
+				paymentConfigPath.GET("/getwxinfo", system.Getwxinfo)
+				paymentConfigPath.POST("/saveWx", system.SaveWx)
 			}
 			//接口请求
 			apitestPath := systemPath.Group("/apitest")

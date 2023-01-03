@@ -1,4 +1,4 @@
-package system
+package allconfig
 
 import (
 	"crypto/md5"
@@ -16,15 +16,56 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// 获取支付配置数据
-func GetPayIinfo(context *gin.Context) {
+// 获取微信公众号
+func Getwxinfo(context *gin.Context) {
 	getuser, _ := context.Get("user")
 	user := getuser.(*utils.UserClaims)
-	data, _ := DB().Table("client_system_paymentconfig").Where("cuid", user.ClientID).First()
-	results.Success(context, "获取支付配置数据", data, nil)
+	data, _ := DB().Table("admin_system_wxconfig").Where("admin_id", user.ID).First()
+	results.Success(context, "获取微信公众号", data, nil)
 }
 
 // 添加配置数据
+func SaveWx(context *gin.Context) {
+	//获取post传过来的data
+	body, _ := ioutil.ReadAll(context.Request.Body)
+	var parameter map[string]interface{}
+	_ = json.Unmarshal(body, &parameter)
+	//当前用户
+	getuser, _ := context.Get("user")
+	user := getuser.(*utils.UserClaims)
+	//查找是否有数据
+	find, _ := DB().Table("admin_system_wxconfig").Where("admin_id", user.ID).Value("id")
+	if find == nil {
+		parameter["createtime"] = time.Now().Unix()
+		parameter["admin_id"] = user.ID
+		addId, err := DB().Table("admin_system_wxconfig").Data(parameter).InsertGetId()
+		if err != nil {
+			results.Failed(context, "添加失败", err)
+		} else {
+			results.Success(context, "添加成功！", addId, nil)
+		}
+	} else {
+		res, err := DB().Table("admin_system_wxconfig").
+			Data(parameter).
+			Where("admin_id", user.ID).
+			Update()
+		if err != nil {
+			results.Failed(context, "更新失败", err)
+		} else {
+			results.Success(context, "更新成功！", res, nil)
+		}
+	}
+}
+
+// 获取支付
+func GetPay(context *gin.Context) {
+	getuser, _ := context.Get("user")
+	user := getuser.(*utils.UserClaims)
+	data, _ := DB().Table("admin_system_paymentconfig").Where("admin_id", user.ID).First()
+	results.Success(context, "获取支付", data, nil)
+}
+
+// 添加支付配置
 func SavePay(context *gin.Context) {
 	//获取post传过来的data
 	body, _ := ioutil.ReadAll(context.Request.Body)
@@ -33,24 +74,21 @@ func SavePay(context *gin.Context) {
 	//当前用户
 	getuser, _ := context.Get("user")
 	user := getuser.(*utils.UserClaims)
-	var f_id float64 = 0
-	if parameter["id"] != nil {
-		f_id = parameter["id"].(float64)
-	}
-	if f_id == 0 {
+	//查找是否有数据
+	find, _ := DB().Table("admin_system_paymentconfig").Where("admin_id", user.ID).Value("id")
+	if find == nil {
 		parameter["createtime"] = time.Now().Unix()
-		parameter["cuid"] = user.ClientID
-		parameter["accountID"] = user.Accountid
-		addId, err := DB().Table("client_system_paymentconfig").Data(parameter).InsertGetId()
+		parameter["admin_id"] = user.ID
+		addId, err := DB().Table("admin_system_paymentconfig").Data(parameter).InsertGetId()
 		if err != nil {
 			results.Failed(context, "添加失败", err)
 		} else {
 			results.Success(context, "添加成功！", addId, nil)
 		}
 	} else {
-		res, err := DB().Table("client_system_paymentconfig").
+		res, err := DB().Table("admin_system_paymentconfig").
 			Data(parameter).
-			Where("id", f_id).
+			Where("admin_id", user.ID).
 			Update()
 		if err != nil {
 			results.Failed(context, "更新失败", err)
@@ -111,7 +149,6 @@ func UploadFile(context *gin.Context) {
 			//保存数据
 			dir, _ := filepath.Abs(filepath.Dir(os.Args[0]))
 			Insertdata := map[string]interface{}{
-				"accountID":  user.Accountid,
 				"cid":        user.ID,
 				"sha1":       sha1_str,
 				"title":      filename_arr[0],
@@ -137,46 +174,4 @@ func md5Str(origin string) string {
 	m := md5.New()
 	m.Write([]byte(origin))
 	return hex.EncodeToString(m.Sum(nil))
-}
-
-// 获取微信公众号
-func Getwxinfo(context *gin.Context) {
-	getuser, _ := context.Get("user")
-	user := getuser.(*utils.UserClaims)
-	data, _ := DB().Table("client_system_wxconfig").Where("cuid", user.ClientID).First()
-	results.Success(context, "获取微信公众号", data, nil)
-}
-
-// 添加配置数据
-func SaveWx(context *gin.Context) {
-	//获取post传过来的data
-	body, _ := ioutil.ReadAll(context.Request.Body)
-	var parameter map[string]interface{}
-	_ = json.Unmarshal(body, &parameter)
-	//当前用户
-	getuser, _ := context.Get("user")
-	user := getuser.(*utils.UserClaims)
-	//查找是否有数据
-	find, _ := DB().Table("client_system_wxconfig").Where("cuid", user.ClientID).Value("id")
-	if find == nil {
-		parameter["createtime"] = time.Now().Unix()
-		parameter["cuid"] = user.ClientID
-		parameter["accountID"] = user.Accountid
-		addId, err := DB().Table("client_system_wxconfig").Data(parameter).InsertGetId()
-		if err != nil {
-			results.Failed(context, "添加失败", err)
-		} else {
-			results.Success(context, "添加成功！", addId, nil)
-		}
-	} else {
-		res, err := DB().Table("client_system_wxconfig").
-			Data(parameter).
-			Where("cuid", user.ClientID).
-			Update()
-		if err != nil {
-			results.Failed(context, "更新失败", err)
-		} else {
-			results.Success(context, "更新成功！", res, nil)
-		}
-	}
 }
