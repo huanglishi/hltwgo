@@ -14,7 +14,8 @@ require (
 )
 
 require (
-	github.com/bwmarrin/snowflake v0.3.0 // indirect
+	github.com/bwmarrin/snowflake v0.3.0
+	github.com/disintegration/imaging v1.6.2
 	github.com/go-openapi/spec v0.20.6 // indirect
 	github.com/go-openapi/swag v0.22.0 // indirect
 	github.com/go-playground/validator/v10 v10.11.0 // indirect
@@ -22,10 +23,10 @@ require (
 	github.com/gohouse/golib v0.0.0-20201013092821-ca87ab19b554 // indirect
 	github.com/json-iterator/go v1.1.12
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible // indirect
-	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
 	github.com/pelletier/go-toml/v2 v2.0.2 // indirect
 	github.com/swaggo/swag v1.8.4
+	github.com/u2takey/ffmpeg-go v0.4.1
 	github.com/wechatpay-apiv3/wechatpay-go v0.2.16
 	golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa // indirect
 	golang.org/x/net v0.0.0-20220809184613-07c6da5e1ced // indirect

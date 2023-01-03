@@ -81,11 +81,13 @@ func UploadFile(context *gin.Context) {
 			var cover_url string = ""
 			if filetype == "video" {
 				ftype = 2
-				//封面路径
-				fmt.Println("dir:", dir)
-				var ffmpegPath string = strings.Replace(dir, "\\", "/", -1) + "/" + "ffmpeg/bin/ffmpeg"
-				vurlpath := strings.Replace(dir, "\\", "/", -1) + "/" + path
-				cover_url = invokeFfmpeg(vurlpath, file_path+name_str, ffmpegPath)
+				videopath := fmt.Sprintf("./%s", path)
+				pathroot := strings.Split(path, ".")
+				imgpath := fmt.Sprintf("./%s", pathroot[0])
+				fname, err := GetSnapshot(videopath, imgpath, 1)
+				if err == nil {
+					cover_url = fname
+				}
 			}
 			Insertdata := map[string]interface{}{
 				"accountID":  user.Accountid,

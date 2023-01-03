@@ -232,6 +232,7 @@ func ApiClient(R *gin.Engine) {
 				managePath.DELETE("/delFile", file.DelFile)
 				managePath.GET("/getCateList", file.GetCateList)
 				managePath.GET("/getPicture", file.GetPicture)
+				managePath.GET("/testCover", file.TestCover)
 			}
 		}
 		//附件资源
