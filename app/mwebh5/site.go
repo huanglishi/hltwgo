@@ -17,7 +17,7 @@ func GetHome(context *gin.Context) {
 	if id == "0" {
 		results.Failed(context, "请传网站id", nil)
 	} else {
-		micweb, _ := DB().Table("client_micweb").Where("id", id).Fields("id,cuid,title,des,footer_tabbar,top_tabbar,side_tabbar,status,updatetime").First()
+		micweb, _ := DB().Table("client_micweb").Where("id", id).Fields("id,cuid,title,des,footer_tabbar,top_tabbar,side_tabbar,copyright_text,status,updatetime").First()
 		var pagedata gorose.Data
 		pagedata_f, _ := DB().Table("client_micweb_page").Where("micweb_id", id).Where("ishome", 1).First()
 		pagedata = pagedata_f

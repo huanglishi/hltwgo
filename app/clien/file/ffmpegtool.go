@@ -13,7 +13,8 @@ import (
 )
 
 // 保存图片-tool
-// _, err := GetSnapshot("./test.mp4", "test", 1)
+// 视频地址videoPath
+// snapshotPath 图片保存路径
 func GetSnapshot(videoPath, snapshotPath string, frameNum int) (snapshotName string, err error) {
 	buf := bytes.NewBuffer(nil)
 	err = ffmpeg.Input(videoPath).

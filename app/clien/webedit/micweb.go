@@ -13,24 +13,29 @@ import (
 // 获取信息内容
 func GetMicweb(context *gin.Context) {
 	tplid := context.DefaultQuery("tplid", "0")
+	micweb_id_df := context.DefaultQuery("micweb_id", "0") //选填
 	getuser, _ := context.Get("user")
 	user := getuser.(*utils.UserClaims)
 	var micweb_id int = 0
-	micweb_select_id, _ := DB().Table("client_micweb").Where("cuid", user.ClientID).Where("is_select", 1).Value("id")
-	if micweb_select_id == nil { //没有选择中-随机查找一个
-		micweb_def_id, _ := DB().Table("client_micweb").Where("cuid", user.ClientID).Value("id")
-		micweb_id = GetInterfaceToInt(micweb_def_id)
+	if micweb_id_df == "0" {
+		micweb_select_id, _ := DB().Table("client_micweb").Where("cuid", user.ClientID).Where("is_select", 1).Value("id")
+		if micweb_select_id == nil { //没有选择中-随机查找一个
+			micweb_def_id, _ := DB().Table("client_micweb").Where("cuid", user.ClientID).Value("id")
+			micweb_id = GetInterfaceToInt(micweb_def_id)
+		} else {
+			micweb_id = GetInterfaceToInt(micweb_select_id)
+		}
 	} else {
-		micweb_id = GetInterfaceToInt(micweb_select_id)
+		micweb_id = GetInterfaceToInt(micweb_id_df)
 	}
 	if tplid != "0" { //如果是传模板则用模板覆盖-复制
-		tpldata, tplerr := DB().Table("client_micweb_tpl_main").Where("id", tplid).Fields("id,cid,home_id,title,details,type,image,footer_tabbar,top_tabbar,side_tabbar").First()
+		tpldata, tplerr := DB().Table("client_micweb_tpl_main").Where("id", tplid).Fields("id,cid,home_id,title,details,type,image,footer_tabbar,top_tabbar,side_tabbar,copyright_text").First()
 		if tplerr != nil {
 			results.Failed(context, "获取模板数据失败，导致无法复制模板", tplerr)
 			return
 		}
 		//1更新底部导航
-		_, micweberr := DB().Table("client_micweb").Data(map[string]interface{}{"footer_tabbar": tpldata["footer_tabbar"], "top_tabbar": tpldata["top_tabbar"], "side_tabbar": tpldata["side_tabbar"]}).
+		_, micweberr := DB().Table("client_micweb").Data(map[string]interface{}{"footer_tabbar": tpldata["footer_tabbar"], "top_tabbar": tpldata["top_tabbar"], "side_tabbar": tpldata["side_tabbar"], "copyright_text": tpldata["copyright_text"]}).
 			Where("cuid", user.ClientID).Where("is_select", 1).Update()
 		if micweberr != nil {
 			results.Failed(context, "获取站点底部导航失败！", micweberr)
@@ -43,7 +48,7 @@ func GetMicweb(context *gin.Context) {
 			return
 		}
 	}
-	data, err := DB().Table("client_micweb").Where("id", micweb_id).Fields("id,title,des,status,approval_err,footer_tabbar,top_tabbar,side_tabbar").First()
+	data, err := DB().Table("client_micweb").Where("id", micweb_id).Fields("id,title,des,status,approval_err,footer_tabbar,top_tabbar,side_tabbar,copyright_text").First()
 	if err != nil {
 		results.Failed(context, "获取微站信息失败", err)
 	} else {
@@ -51,11 +56,11 @@ func GetMicweb(context *gin.Context) {
 			data["selectval"] = StingToJSON(data["selectval"])
 		}
 		//字符串转JSON
-		if data["footer_tabbar"] != nil {
-			var parameter interface{}
-			_ = json.Unmarshal([]byte(data["footer_tabbar"].(string)), &parameter)
-			data["footer_tabbar"] = parameter
-		}
+		// if data["footer_tabbar"] != nil {
+		// 	var parameter interface{}
+		// 	_ = json.Unmarshal([]byte(data["footer_tabbar"].(string)), &parameter)
+		// 	data["footer_tabbar"] = parameter
+		// }
 		//获取站点下的页面
 		list, _ := DB().Table("client_micweb_page").Where("micweb_id", data["id"]).Fields("id,ishome,name,uuid,orderNum").Order("orderNum asc").Get()
 		if list != nil {
