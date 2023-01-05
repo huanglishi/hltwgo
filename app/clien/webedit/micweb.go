@@ -146,6 +146,12 @@ func SaveMicwebPabe(context *gin.Context) {
 			micweb_id, _ := DB().Table("client_micweb").Where("cuid", user.ClientID).Where("is_select", 1).Value("id")
 			parameter["micweb_id"] = micweb_id
 		}
+		hasehome, _ := DB().Table("client_micweb_page").Where("micweb_id", parameter["micweb_id"]).Where("ishome", 1).Fields("id").First()
+		if hasehome == nil {
+			parameter["ishome"] = 1
+		} else {
+			parameter["ishome"] = 0
+		}
 		addId, err := DB().Table("client_micweb_page").Data(parameter).InsertGetId()
 		if err != nil {
 			results.Failed(context, "保存失败", err)
@@ -240,14 +246,15 @@ func SaveMicweb(context *gin.Context) {
 	body, _ := ioutil.ReadAll(context.Request.Body)
 	var parameter map[string]interface{}
 	_ = json.Unmarshal(body, &parameter)
+
 	if _, ok := parameter["id"]; !ok || parameter["id"] == "" {
 		results.Failed(context, "参数id不能空", nil)
 	} else {
 		id := parameter["id"]
-		delete(parameter, "id")
+		// delete(parameter, "id")
 		res, err := DB().Table("client_micweb").
-			Data(parameter).
 			Where("id", id).
+			Data(parameter).
 			Update()
 		if err != nil {
 			results.Failed(context, "保存失败", err)

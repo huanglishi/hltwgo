@@ -111,8 +111,21 @@ func savealltplpage(micweb_id interface{}, main_id interface{}) {
 	DB().Table("client_micweb_tpl_main_page").Data(save_arr).Insert()
 }
 
-// 删除-整站
+// 删除-整站-假删
 func DelWebTpl(context *gin.Context) {
+	body, _ := ioutil.ReadAll(context.Request.Body)
+	var parameter map[string]interface{}
+	_ = json.Unmarshal(body, &parameter)
+	res2, err := DB().Table("client_micweb_tpl_main").Where("id", parameter["id"]).Data(map[string]interface{}{"isdel": 1, "delTime": time.Now().Unix()}).Update()
+	if err != nil {
+		results.Failed(context, "删除失败", err)
+	} else {
+		results.Success(context, "删除成功！", res2, nil)
+	}
+}
+
+// 删除-整站-真删
+func DelWebTpl_real(context *gin.Context) {
 	body, _ := ioutil.ReadAll(context.Request.Body)
 	var parameter map[string]interface{}
 	_ = json.Unmarshal(body, &parameter)

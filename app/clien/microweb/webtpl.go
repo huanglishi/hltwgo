@@ -6,12 +6,32 @@ import (
 	utils "huling/utils/tool"
 	"io/ioutil"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
 
-// 8.1 删除整站模板
+// 8.1 删除整站模板-假删除
 func DelWebTpl(context *gin.Context) {
+	//获取post传过来的data
+	body, _ := ioutil.ReadAll(context.Request.Body)
+	var parameter map[string]interface{}
+	_ = json.Unmarshal(body, &parameter)
+	//当前用户
+	getuser, _ := context.Get("user")
+	user := getuser.(*utils.UserClaims)
+	res2, err := DB().Table("client_micweb_tpl_main").Where("id", parameter["id"]).Data(map[string]interface{}{"isdel": 1, "del_cuid": user.ID, "delTime": time.Now().Unix()}).Update()
+	if err != nil {
+		results.Failed(context, "删除失败", err)
+	} else {
+		results.Success(context, "删除成功！", res2, nil)
+	}
+	context.Abort()
+	return
+}
+
+// 8.1 删除整站模板-真删
+func DelWebTpl_real(context *gin.Context) {
 	//获取post传过来的data
 	body, _ := ioutil.ReadAll(context.Request.Body)
 	var parameter map[string]interface{}
@@ -39,7 +59,7 @@ func GetSelectTplGroup(context *gin.Context) {
 func GetSelectTplList(context *gin.Context) {
 	key_pcid := context.DefaultQuery("pcid", "0")
 	key_cid := context.DefaultQuery("cid", "0")
-	MDB := DB().Table("client_micweb_tpl_main")
+	MDB := DB().Table("client_micweb_tpl_main").Where("isdel", 0)
 	if key_cid != "0" && key_pcid != key_cid {
 		MDB = MDB.Where("cid", key_cid)
 	} else {

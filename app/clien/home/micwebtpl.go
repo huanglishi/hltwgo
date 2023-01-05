@@ -19,7 +19,7 @@ func GetTplGroup(context *gin.Context) {
 // 获取模板
 func GetTpl(context *gin.Context) {
 	key_cid := context.DefaultQuery("cid", "0")
-	MDB := DB().Table("client_micweb_tpl_main")
+	MDB := DB().Table("client_micweb_tpl_main").Where("isdel", 0)
 	if key_cid != "0" {
 		MDB = MDB.Where("cid", key_cid)
 	}

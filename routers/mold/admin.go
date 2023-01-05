@@ -19,6 +19,7 @@ import (
 	packagedesign "huling/app/admin/platform/packagedesign"
 	"huling/app/admin/platform/repayment"
 	"huling/app/admin/platform/tplaplication"
+	"huling/app/admin/platform/webtpldel"
 	"huling/app/admin/role"
 	"huling/app/admin/user"
 
@@ -166,6 +167,12 @@ func ApiAdmin(R *gin.Engine) {
 				tplaplicationPath.GET("/getDetail", tplaplication.GetDetail)
 				tplaplicationPath.GET("/getTplList", tplaplication.GetTplList)
 				tplaplicationPath.POST("/doResult", tplaplication.DoResult)
+			}
+			//轻站模板回收站
+			webtpldelPath := platformPath.Group("/webtpldel")
+			{
+				webtpldelPath.GET("/getList", webtpldel.Getlist)
+				webtpldelPath.POST("/restoreTpl", webtpldel.RestoreTpl)
 			}
 		}
 

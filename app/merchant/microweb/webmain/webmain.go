@@ -528,7 +528,7 @@ func GetSelectTplGroup(context *gin.Context) {
 func GetSelectTplList(context *gin.Context) {
 	key_pcid := context.DefaultQuery("pcid", "0")
 	key_cid := context.DefaultQuery("cid", "0")
-	MDB := DB().Table("merchant_micweb_tpl_main")
+	MDB := DB().Table("merchant_micweb_tpl_main").Where("isdel", 0)
 	if key_cid != "0" && key_pcid != key_cid {
 		MDB = MDB.Where("cid", key_cid)
 	} else {
