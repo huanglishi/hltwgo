@@ -108,6 +108,10 @@ func copyTplpage(tplid interface{}, micweb_id interface{}, uid interface{}, acco
 				"show_top_tabbar":    val["show_top_tabbar"],
 				"show_side_tabbar":   val["show_side_tabbar"],
 				"show_footer_tabbar": val["show_footer_tabbar"],
+				"float_btn":          val["float_btn"],
+				"show_float_btn":     val["show_float_btn"],
+				"returntop":          val["returntop"],
+				"show_returntop":     val["show_returntop"],
 				"createtime":         time.Now().Unix(),
 			})
 		}
