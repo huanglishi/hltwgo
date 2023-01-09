@@ -38,6 +38,8 @@ func ApiMwebh5(R *gin.Engine) {
 			webdataPath.GET("/getOrderList", mwebh5.GetOrderList)
 			webdataPath.GET("/getOrderDetail", mwebh5.GetOrderDetail)
 			webdataPath.POST("/addOrder", mwebh5.AddOrder)
+			webdataPath.GET("/getCancelNo", mwebh5.GetCancelNo)
+			webdataPath.GET("/getIsCancel", mwebh5.GetIsCancel)
 			//收货地址
 			webdataPath.POST("/saveAddress", mwebh5.SaveAddress)
 			webdataPath.GET("/getAddressList", mwebh5.GetAddressList)

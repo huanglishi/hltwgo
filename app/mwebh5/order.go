@@ -6,6 +6,7 @@ import (
 	"huling/utils/results"
 	utils "huling/utils/tool"
 	"io/ioutil"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -22,7 +23,9 @@ func GetOrderList(context *gin.Context) {
 			results.Failed(context, "获取订单失败！", err)
 		} else {
 			for _, val := range list {
-				images, _ := DB().Table("client_product_manage").Where("id", val["product_id"]).Value("images")
+				product, _ := DB().Table("client_product_manage").Where("id", val["product_id"]).Fields("images,type").First()
+				val["type"] = product["type"]
+				images := product["images"]
 				if images != nil && images != "" {
 					rooturl, _ := DB().Table("merchant_config").Where("keyname", "rooturl").Value("keyvalue")
 					//多图
@@ -53,7 +56,10 @@ func GetOrderDetail(context *gin.Context) {
 		if err != nil {
 			results.Failed(context, "获取订单详情失败！", err)
 		} else {
-			images, _ := DB().Table("client_product_manage").Where("id", data["product_id"]).Value("images")
+			product, _ := DB().Table("client_product_manage").Where("id", data["product_id"]).Fields("images,type,cancel_des").First()
+			data["type"] = product["type"]
+			data["cancel_des"] = product["cancel_des"]
+			images := product["images"]
 			if images != nil && images != "" {
 				rooturl, _ := DB().Table("merchant_config").Where("keyname", "rooturl").Value("keyvalue")
 				//多图
@@ -94,6 +100,57 @@ func AddOrder(context *gin.Context) {
 			results.Failed(context, "用户下单失败！", err)
 		} else {
 			results.Success(context, "用户下单成功1", res, userinfo)
+		}
+	}
+}
+
+// 获取核销码
+func GetCancelNo(context *gin.Context) {
+	order_id := context.DefaultQuery("order_id", "0")
+	if order_id == "0" {
+		results.Failed(context, "请传参数id", nil)
+	} else {
+		cancel_no := utils.GetSnowflakeId()
+		adddata := map[string]interface{}{"cancel_no": cancel_no, "order_id": order_id, "build_time": time.Now().Unix()}
+		_, err := DB().Table("client_product_order_cancel").Data(adddata).Insert()
+		if err != nil {
+			results.Failed(context, "用户下单失败！", err)
+		} else {
+			cancel_valid, _ := DB().Table("merchant_config").Where("keyname", "cancel_valid").Value("keyvalue")
+			adddata["cancel_valid"] = cancel_valid
+			results.Success(context, "获取订单核新销码", adddata, nil)
+		}
+	}
+}
+
+// 检查是否已经扫码
+func GetIsCancel(context *gin.Context) {
+	order_id := context.DefaultQuery("order_id", "0")
+	cancel_no := context.DefaultQuery("cancel_no", "0")
+	if order_id == "0" {
+		results.Failed(context, "请传参数订单id：order_id", nil)
+	} else if cancel_no == "0" {
+		results.Failed(context, "请传参数核销码：cancel_no", nil)
+	} else {
+		status, gerr := DB().Table("client_product_order").Where("id", order_id).Value("status")
+		if gerr != nil || status == nil {
+			results.Failed(context, "获取核销状态失败", gerr)
+		} else {
+			if status == 9 {
+				results.Success(context, "订已核销", "cancel", nil)
+			} else {
+				//判断时间
+				cancel_valid, _ := DB().Table("merchant_config").Where("keyname", "cancel_valid").Value("keyvalue") //获取有效时间
+				nowtime := time.Now().Unix()
+				cancel_validint, _ := strconv.ParseInt(cancel_valid.(string), 10, 64)
+				order_cancel, _ := DB().Table("client_product_order_cancel").Where("cancel_no", cancel_no).Order("build_time desc").Fields("cancel_no,build_time").First()
+				if (nowtime - order_cancel["build_time"].(int64)) > cancel_validint*60 { //无效重新生成-已过期
+					results.Success(context, "订单未核销:核销码已过期", "codeInvalid", nil)
+				} else {
+					results.Success(context, "订单未核销:核销码有效", "codeValid", nil)
+				}
+
+			}
 		}
 	}
 }

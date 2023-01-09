@@ -34,6 +34,7 @@ var (
 		"/common/uploadfile/getimagebase",
 		"/common/api/registry",
 		"/client/user/login",
+		"/client/cancelapp/user/login",
 		"/client/user/refreshtoken",
 	}
 	// effectTime = 2 * time.Minute //两分钟

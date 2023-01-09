@@ -2,6 +2,7 @@ package rmold
 
 import (
 	"huling/app/clien/article"
+	"huling/app/clien/cancelapp"
 	"huling/app/clien/file"
 	"huling/app/clien/form"
 	"huling/app/clien/home"
@@ -391,6 +392,16 @@ func ApiClient(R *gin.Engine) {
 				dataPath.GET("/getFormField", form.GetFormField)
 				dataPath.GET("/getFormDataList", form.GetFormDataList)
 				itemPath.DELETE("/delData", form.DelData)
+			}
+		}
+		//7订单核销app
+		cancelappPath := clienPath.Group("/cancelapp")
+		{
+			//账号登录
+			userPath := cancelappPath.Group("/user")
+			{
+				userPath.POST("/login", cancelapp.Lonin)
+				userPath.POST("/loginout", cancelapp.Logout)
 			}
 		}
 
