@@ -2,6 +2,7 @@ package cancelapp
 
 import (
 	"encoding/json"
+	"fmt"
 	"huling/utils/results"
 	utils "huling/utils/tool"
 	"io/ioutil"
@@ -50,11 +51,12 @@ func Lonin(context *gin.Context) {
 	})
 	DB().Table("client_user").Where("id", userdata["id"]).Data(map[string]interface{}{"status": 1, "lastLoginTime": time.Now().Unix(), "lastLoginIp": utils.GetRequestIP(context)}).Update()
 	//登录日志
-	DB().Table("login_logs").
-		Data(map[string]interface{}{"type": 3, "uid": userdata["id"], "out_in": "in",
-			"createtime": time.Now().Unix(), "loginIP": utils.GetRequestIP(context)}).
-		Insert()
-	results.Success(context, "登录成功！", token, nil)
+	DB().Table("login_logs").Data(map[string]interface{}{"type": 3, "uid": userdata["id"], "out_in": "in", "createtime": time.Now().Unix(), "loginIP": utils.GetRequestIP(context)}).Insert()
+	if userdata["avatar"] != "" {
+		rooturl, _ := DB().Table("merchant_config").Where("keyname", "rooturl").Value("keyvalue")
+		userdata["avatar"] = fmt.Sprintf("%s%s", rooturl, userdata["avatar"])
+	}
+	results.Success(context, "登录成功！", token, userdata)
 }
 
 // 退出登录

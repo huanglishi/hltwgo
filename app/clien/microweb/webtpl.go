@@ -73,5 +73,5 @@ func GetSelectTplList(context *gin.Context) {
 			val["image"] = strings.Replace(val["image"].(string), "http://192.168.1.118:8098", locall_imgurl.(string), -1)
 		}
 	}
-	results.Success(context, "获取网站模板数据", datalist, nil)
+	results.Success(context, "获取网站模板数据！", datalist, nil)
 }

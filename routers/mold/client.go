@@ -98,6 +98,7 @@ func ApiClient(R *gin.Engine) {
 				micwebtplPath.GET("/getCustomtpl", home.GetCustomtpl)
 				micwebtplPath.GET("/getCustomtpldeltail", home.GetCustomtpldeltail)
 				micwebtplPath.POST("/saveCustom", home.SaveCustom)
+				micwebtplPath.POST("/setHomeview", home.SetHomeview)
 			}
 		}
 		//企业微站
@@ -402,6 +403,12 @@ func ApiClient(R *gin.Engine) {
 			{
 				userPath.POST("/login", cancelapp.Lonin)
 				userPath.POST("/loginout", cancelapp.Logout)
+			}
+			//核销
+			cancelPath := cancelappPath.Group("/cancel")
+			{
+				cancelPath.POST("/doCancel", cancelapp.DoCancel)
+				cancelPath.GET("/cancelRecord", cancelapp.CancelRecord)
 			}
 		}
 

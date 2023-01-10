@@ -2,6 +2,7 @@ package product
 
 import (
 	"encoding/json"
+	"fmt"
 	"huling/utils/results"
 	utils "huling/utils/tool"
 	"io/ioutil"
@@ -35,6 +36,19 @@ func GetOrderList(context *gin.Context) {
 	if err != nil {
 		results.Failed(context, "加载数据失败", err)
 	} else {
+		for _, val := range list {
+			product, _ := DB().Table("client_product_manage").Where("id", val["product_id"]).Fields("images,type").First()
+			val["type"] = product["type"]
+			if product["images"] != nil && product["images"] != "" {
+				rooturl, _ := DB().Table("merchant_config").Where("keyname", "rooturl").Value("keyvalue")
+				//多图
+				var parameter []interface{}
+				_ = json.Unmarshal([]byte(product["images"].(string)), &parameter)
+				val["image"] = fmt.Sprintf("%s%s", rooturl, parameter[0])
+			} else {
+				val["image"] = ""
+			}
+		}
 		var totalCount int64
 		totalCount, _ = whereMap2.Count()
 		results.Success(context, "获取产品订单列表", map[string]interface{}{

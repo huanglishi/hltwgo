@@ -136,7 +136,8 @@ func GetIsCancel(context *gin.Context) {
 		if gerr != nil || status == nil {
 			results.Failed(context, "获取核销状态失败", gerr)
 		} else {
-			if status == 9 {
+			var nisnum int64 = 9
+			if status.(int64) == nisnum {
 				results.Success(context, "订已核销", "cancel", nil)
 			} else {
 				//判断时间
@@ -147,7 +148,7 @@ func GetIsCancel(context *gin.Context) {
 				if (nowtime - order_cancel["build_time"].(int64)) > cancel_validint*60 { //无效重新生成-已过期
 					results.Success(context, "订单未核销:核销码已过期", "codeInvalid", nil)
 				} else {
-					results.Success(context, "订单未核销:核销码有效", "codeValid", nil)
+					results.Success(context, "订单未核销:核销码有效", "codeValid", status)
 				}
 
 			}

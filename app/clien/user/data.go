@@ -60,6 +60,7 @@ func GetInfo(context *gin.Context) {
 		"mwurl":         mwurl,         //微站二维码
 		"tplpreviewurl": tplpreviewurl, //轻站模板预览地址
 		"rooturl":       rooturl,       //图片
+		"downappurl":    "https://tuwen.hulingyun.cn/resource/staticfile/cancelapp.apk",
 		"roles":         roles,
 	}, nil)
 }

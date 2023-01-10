@@ -81,7 +81,7 @@ func init() {
 		AllowOrigins: str_arr,
 		// AllowOriginFunc:  func(origin string) bool { return true },
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"},
-		AllowHeaders:     []string{"X-Requested-With", "Content-Type", "verify-encrypt", "verify-time"},
+		AllowHeaders:     []string{"X-Requested-With", "Content-Type", "verify-encrypt", "Authorization", "verify-time"},
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
 	}))
