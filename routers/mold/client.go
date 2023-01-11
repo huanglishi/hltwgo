@@ -403,6 +403,7 @@ func ApiClient(R *gin.Engine) {
 			{
 				userPath.POST("/login", cancelapp.Lonin)
 				userPath.POST("/loginout", cancelapp.Logout)
+				userPath.GET("/refreshtoken", cancelapp.Refreshtoken)
 			}
 			//核销
 			cancelPath := cancelappPath.Group("/cancel")

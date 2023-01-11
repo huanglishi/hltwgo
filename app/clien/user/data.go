@@ -2,6 +2,7 @@ package user
 
 import (
 	"encoding/json"
+	"fmt"
 	"huling/utils/results"
 	utils "huling/utils/tool"
 	"io/ioutil"
@@ -45,6 +46,7 @@ func GetInfo(context *gin.Context) {
 	//获取是否是管理账号
 	is_admin, _ := DB().Table("merchant_user").Where("id", user.Accountid).Value("is_admin")
 	//获取用户权限
+	go_domain, _ := DB().Table("merchant_config").Where("keyname", "go_domain").Value("keyvalue")
 	results.Success(context, "获取用户信息", map[string]interface{}{
 		"userId":        userdata["id"],
 		"accountID":     userdata["accountID"],
@@ -60,7 +62,7 @@ func GetInfo(context *gin.Context) {
 		"mwurl":         mwurl,         //微站二维码
 		"tplpreviewurl": tplpreviewurl, //轻站模板预览地址
 		"rooturl":       rooturl,       //图片
-		"downappurl":    "https://tuwen.hulingyun.cn/resource/staticfile/cancelapp.apk",
+		"downappurl":    fmt.Sprintf("%s/resource/downapp/", go_domain),
 		"roles":         roles,
 	}, nil)
 }

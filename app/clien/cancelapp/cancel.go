@@ -24,6 +24,10 @@ func DoCancel(context *gin.Context) {
 		if err != nil {
 			results.Failed(context, "订单核销失败！", err)
 		} else {
+			if order_cancel["build_time"] == nil {
+				results.Failed(context, "核销码无效", nil)
+				return
+			}
 			//判断时间
 			cancel_valid, _ := DB().Table("merchant_config").Where("keyname", "cancel_valid").Value("keyvalue") //获取有效时间
 			nowtime := time.Now().Unix()
