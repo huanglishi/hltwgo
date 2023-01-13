@@ -118,7 +118,7 @@ func GetCancelNo(context *gin.Context) {
 		} else {
 			cancel_valid, _ := DB().Table("merchant_config").Where("keyname", "cancel_valid").Value("keyvalue")
 			adddata["cancel_valid"] = cancel_valid
-			results.Success(context, "获取订单核新销码", adddata, nil)
+			results.Success(context, "获取订单核新销码1", adddata, nil)
 		}
 	}
 }

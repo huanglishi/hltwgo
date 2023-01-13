@@ -112,6 +112,7 @@ func copyTplpage(tplid interface{}, micweb_id interface{}, uid interface{}, acco
 				"show_float_btn":     val["show_float_btn"],
 				"returntop":          val["returntop"],
 				"show_returntop":     val["show_returntop"],
+				"shared_config":      val["shared_config"],
 				"createtime":         time.Now().Unix(),
 			})
 		}
@@ -301,5 +302,22 @@ func UpPageIshome(context *gin.Context) {
 		results.Failed(context, "更新失败", err)
 	} else {
 		results.Success(context, "更新成功！", res, nil)
+	}
+}
+
+// 删除全部页面-整站
+func DelAllPage(context *gin.Context) {
+	body, _ := ioutil.ReadAll(context.Request.Body)
+	var parameter map[string]interface{}
+	_ = json.Unmarshal(body, &parameter)
+	if _, ok := parameter["micweb_id"]; !ok || parameter["micweb_id"] == "" {
+		results.Failed(context, "请传站点id：micweb_id", nil)
+		return
+	}
+	res2, err := DB().Table("client_micweb_page").Where("micweb_id", parameter["micweb_id"]).Delete()
+	if err != nil {
+		results.Failed(context, "删除整个站点页面失败", err)
+	} else {
+		results.Success(context, "删除整个站点页面成功！", res2, nil)
 	}
 }

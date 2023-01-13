@@ -163,6 +163,7 @@ func ApiClient(R *gin.Engine) {
 				webeditPath.GET("/getMicweb", webedit.GetMicweb)
 				webeditPath.GET("/getMicwebPage", webedit.GetMicwebPage)
 				webeditPath.DELETE("/delMicwebPage", webedit.DelMicwebPage)
+				webeditPath.DELETE("/delAllPage", webedit.DelAllPage)
 				webeditPath.POST("/saveMicwebPabe", webedit.SaveMicwebPabe)
 				webeditPath.POST("/upPageIshome", webedit.UpPageIshome)
 				webeditPath.GET("/getMicwebPageList", webedit.GetMicwebPageList)

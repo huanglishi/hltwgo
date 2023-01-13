@@ -38,12 +38,18 @@ func DoCancel(context *gin.Context) {
 				//当前用户
 				getuser, _ := context.Get("user")
 				user := getuser.(*utils.UserClaims)
-				_, err := DB().Table("client_product_order").Data(map[string]interface{}{"status": 9, "cancel_time": nowtime, "cancel_cuid": user.ID}).Where("id", order_cancel["order_id"]).Update()
-				if err != nil {
-					results.Failed(context, "核销码失败", err)
+				//获取订单信息
+				product_order, _ := DB().Table("client_product_order").Where("id", order_cancel["order_id"]).Fields("out_trade_no").First()
+				//判断是否是该用户订单
+				if product_order["cuid"] == user.ClientID {
+					_, err := DB().Table("client_product_order").Data(map[string]interface{}{"status": 9, "cancel_time": nowtime, "cancel_cuid": user.ID}).Where("id", order_cancel["order_id"]).Update()
+					if err != nil {
+						results.Failed(context, "核销码失败", err)
+					} else {
+						results.Success(context, "订单核销成功", "cancelSuccess", product_order["out_trade_no"])
+					}
 				} else {
-					out_trade_no, _ := DB().Table("client_product_order").Where("id", order_cancel["order_id"]).Value("out_trade_no")
-					results.Success(context, "订单核销成功", "cancelSuccess", out_trade_no)
+					results.Success(context, "该订单不属于您，请检查核销账号", "codeInvalid", nil)
 				}
 			}
 		}

@@ -15,20 +15,23 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// 获取微信签名
+// 获取微信签名-前端分享sdk
 func GetWxSign(context *gin.Context) {
 	micweb_id := context.DefaultQuery("micweb_id", "")
-
 	cuid, _ := DB().Table("client_micweb").Where("id", micweb_id).Value("cuid")
 	var wxconfig map[string]interface{}
 	system_wxconfig_table := "client_system_wxconfig"
-	cwxconfig, _ := DB().Table("client_system_wxconfig").Where("cuid", cuid).Fields("id,AppID,AppSecret,expires_access_token,expires_jsapi_ticket").First()
+	cwxconfig, _ := DB().Table("client_system_wxconfig").Where("cuid", cuid).Fields("id,AppID,AppSecret,expires_access_token,expires_jsapi_ticket,jsapi_ticket,access_token").First()
 	if cwxconfig == nil { //C端没有账号可以调用平台
-		adminwxconfig, _ := DB().Table("admin_system_wxconfig").Where("cuid", cuid).Fields("id,AppID,AppSecret,expires_access_token,expires_jsapi_ticket").First()
+		adminwxconfig, _ := DB().Table("admin_system_wxconfig").Where("cuid", cuid).Fields("id,AppID,AppSecret,expires_access_token,expires_jsapi_ticket,jsapi_ticket,access_token").First()
 		wxconfig = adminwxconfig
 		system_wxconfig_table = "admin_system_wxconfig"
 	} else {
 		wxconfig = cwxconfig
+	}
+	if wxconfig == nil {
+		results.Failed(context, "您的账号为配置微信公众号API及秘钥", nil)
+		return
 	}
 	var (
 		AppID           string = wxconfig["AppID"].(string)
@@ -54,7 +57,7 @@ func GetWxSign(context *gin.Context) {
 	//获取access_token，如果缓存中有，则直接取出数据使用；否则重新调用微信端接口获取
 	client := &http.Client{}
 	//判断access_token是否过期
-	if expires_access_token_int == 0 || (timestampint-expires_access_token_int) > 7200 { //重新请求access_token
+	if wxconfig["access_token"] == "" || expires_access_token_int == 0 || (timestampint-expires_access_token_int) > 7200 { //重新请求access_token
 		request, _ := http.NewRequest("GET", AccessTokenHost, nil)
 		response, _ := client.Do(request)
 		defer response.Body.Close()
@@ -81,7 +84,7 @@ func GetWxSign(context *gin.Context) {
 			return
 		}
 		//添加access_tokens时间
-		DB().Table(system_wxconfig_table).Where("id", wxconfig["id"]).Data(map[string]interface{}{"expires_access_token": timestamp}).Update()
+		DB().Table(system_wxconfig_table).Where("id", wxconfig["id"]).Data(map[string]interface{}{"access_token": access_token, "expires_access_token": timestamp}).Update()
 
 		//获取 jsapi_ticket
 		requestJs, _ := http.NewRequest("GET", JsAPITicketHost+"?access_token="+access_token+"&type=jsapi", nil)
@@ -110,14 +113,12 @@ func GetWxSign(context *gin.Context) {
 			return
 		}
 		//更新数据库jsapi_ticket时间
-		DB().Table(system_wxconfig_table).Where("id", wxconfig["id"]).Data(map[string]interface{}{"expires_jsapi_ticket": timestamp}).Update()
+		DB().Table(system_wxconfig_table).Where("id", wxconfig["id"]).Data(map[string]interface{}{"jsapi_ticket": jsapi_ticket, "expires_jsapi_ticket": timestamp}).Update()
 	} else {
 		//缓存中存在access_token，直接读取
-		access_token = wxconfig["expires_access_token"].(string)
-		jsapi_ticket = wxconfig["expires_jsapi_ticket"].(string)
+		access_token = wxconfig["access_token"].(string)
+		jsapi_ticket = wxconfig["jsapi_ticket"].(string)
 	}
-	fmt.Println("access_token:", access_token)
-	fmt.Println("jsapi_ticket:", jsapi_ticket)
 
 	// 获取 signature
 	signatureStr = "jsapi_ticket=" + jsapi_ticket + "&noncestr=" + noncestr + "&timestamp=" + timestamp + "&url=" + url

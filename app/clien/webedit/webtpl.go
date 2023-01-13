@@ -110,6 +110,7 @@ func savealltplpage(micweb_id interface{}, main_id interface{}) {
 			"show_float_btn":     val["show_float_btn"],
 			"returntop":          val["returntop"],
 			"show_returntop":     val["show_returntop"],
+			"shared_config":      val["shared_config"],
 		})
 	}
 	DB().Table("client_micweb_tpl_main_page").Data(save_arr).Insert()

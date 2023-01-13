@@ -2,8 +2,10 @@ package wxpay
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"huling/utils/results"
+	"io/ioutil"
 	"log"
 
 	"github.com/gin-gonic/gin"
@@ -160,8 +162,16 @@ func Geth5url(cgin *gin.Context) {
 
 // 4 基础支付的回调通知
 func Paynotify(cgin *gin.Context) {
+	//获取post传过来的data
+	body, _ := ioutil.ReadAll(cgin.Request.Body)
+	var parameter map[string]interface{}
+	_ = json.Unmarshal(body, &parameter)
+	fmt.Println("-----支付回调---------")
+	fmt.Println(parameter)
+	results.Success(cgin, "回调通知成功", nil, nil)
+	return
 	const (
-		mchID                      string = "190000****"                               // 商户号
+		mchID                      string = "1635953990"                               // 商户号
 		mchCertificateSerialNumber string = "3775B6A45ACD588826D15E583A95F5DD********" // 商户证书序列号
 		mchAPIv3Key                string = "2ab9****************************"         // 商户APIv3密钥
 	)

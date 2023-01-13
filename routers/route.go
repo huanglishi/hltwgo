@@ -47,7 +47,9 @@ func validityAPi() gin.HandlerFunc {
 		if encrypt == "" || mdsecret != encrypt {
 			if strings.Contains(c.Request.URL.Path, "resource") || strings.Contains(c.Request.URL.Path, "views") ||
 				strings.Contains(c.Request.URL.Path, "webmin") || strings.Contains(c.Request.URL.Path, "webadmin") ||
-				strings.Contains(c.Request.URL.Path, "webclient") || strings.Contains(c.Request.URL.Path, "webbusiness") ||
+				strings.Contains(c.Request.URL.Path, "webclient") ||
+				strings.Contains(c.Request.URL.Path, "webbusiness") ||
+				strings.Contains(c.Request.URL.Path, "MP_verify_0HkL8VPApFK29Tb8.txt") ||
 				strings.Contains(c.Request.URL.Path, "common/uploadfile/getimage") { //过滤附件访问接口
 				c.Next()
 			} else {
@@ -97,7 +99,8 @@ func init() {
 	R.Use(LimitHandler(lmt))
 	//2.部署vue项目
 	// R.LoadHTMLGlob("viewst/*.html")              // 添加入口index.html
-	R.Static("/resource", "./resource") // 附件
+	R.Static("/resource", "./resource")                                                          // 附件
+	R.StaticFile("/MP_verify_0HkL8VPApFK29Tb8.txt", "./resource/MP_verify_0HkL8VPApFK29Tb8.txt") // 附件
 	R.StaticFile("/favicon.ico", "./resource/favicon.ico")
 	// R.Static("/views", "./views")       // 轻站用户后台
 	R.Static("/webmin", "./webmin")           // 轻站-手机查看页面
