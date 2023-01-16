@@ -20,4 +20,6 @@ go build main.go
 SET GOOS=linux
 SET GOARCH=amd64
 go build
+
 ```
+在更目录生成运行的二进制文件：huling,拷贝文件到（49.234.109.66服务器->go项目->tuwensaas)
