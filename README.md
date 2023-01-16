@@ -1,13 +1,8 @@
 
-## 上传github
+## 配置文件
 ```
-echo "# hltwgo" >> README.md
-git init
-git add README.md
-git commit -m "first commit"
-git branch -M main
-git remote add origin https://github.com/huanglishi/hltwgo.git
-git push -u origin main
+文件路径 /conf/app.conf
+
 ```
 ## 安装fresh 热更新-边开发边编译
 go install github.com/pilu/fresh@latest
