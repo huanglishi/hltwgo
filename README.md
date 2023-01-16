@@ -1,9 +1,13 @@
 
 ## 配置文件
 ```
-文件路径 /conf/app.conf
+文件路径 /conf/app.conf 修改数据路径账号密码
 
 ```
+## 开发环境
+  下载安装go环境>=1.16 （推荐最新1.19）
+## 本地运行项目
+ 安装mysql数据库，导入数据文件（更目录下有hltw.sql，对应服务器上tuwen_saa_go）
 ## 安装fresh 热更新-边开发边编译
 go install github.com/pilu/fresh@latest
 
