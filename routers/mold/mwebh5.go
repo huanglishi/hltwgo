@@ -62,6 +62,7 @@ func ApiMwebh5(R *gin.Engine) {
 			//获取h5支付-h5_url
 			wxpayPath.GET("/h5url", wxpay.Geth5url)
 			wxpayPath.GET("/submitOrder", wxpay.SubmitOrder)
+			wxpayPath.GET("/wxJsapiPay", wxpay.WxJsapiPay)
 			wxpayPath.GET("/wxFindOrder", wxpay.WxFindOrder)
 			wxpayPath.GET("/wxDownCert", wxpay.WxDownCert)
 			wxpayPath.POST("/paynotify", wxpay.Paynotify)
