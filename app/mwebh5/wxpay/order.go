@@ -6,6 +6,7 @@ import (
 	"huling/utils/results"
 	"log"
 	"net"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/wechatpay-apiv3/wechatpay-go/core"
@@ -151,24 +152,29 @@ func WxJsapiPay(cgin *gin.Context) {
 			/************开始支付逻辑************************/
 			svc := jsapi.JsapiApiService{Client: client}
 			// 得到prepay_id，以及调起支付所需的参数和签名
+			//计算价格
+			price_fl, _ := strconv.ParseFloat(orderdata["price"].(string), 64)
+			price_int := int64(price_fl * 100)
+			// pay_out_order := GenerateCode()
 			resp, result, err := svc.PrepayWithRequestPayment(ctx,
 				jsapi.PrepayRequest{
 					Appid:       core.String(paymentconfig["appId"].(string)),
 					Mchid:       core.String(paymentconfig["mchID"].(string)),
-					Description: core.String("Image形象店-深圳腾大-QQ公仔"),
-					OutTradeNo:  core.String("2023201407033233365018"),
-					Attach:      core.String("自定义数据说明"),
-					NotifyUrl:   core.String("https://www.weixin.qq.com/wxpay/pay.php"),
+					Description: core.String(orderdata["title"].(string)),
+					OutTradeNo:  core.String(orderdata["out_trade_no"].(string)),
+					Attach:      core.String(orderdata["note"].(string)),
+					NotifyUrl:   core.String("https://tuwen.hulingyun.cn/mwebh5/wxpay/paynotify/"),
 					Amount: &jsapi.Amount{
-						Total: core.Int64(100),
+						Total: core.Int64(price_int),
 					},
 					Payer: &jsapi.Payer{
 						Openid: core.String(wxopenid), //微信公众号用户openid
 					},
 				},
 			)
-
 			if err == nil {
+				//更新支付单号
+				DB().Table("client_product_order").Where("id", order_id).Data(map[string]interface{}{"prepay_id": resp.PrepayId}).Update()
 				results.Success(cgin, "jsAPi支付统一订单", resp, result.Response.StatusCode)
 			} else {
 				results.Success(cgin, fmt.Sprintf("jsAPi支付统一订单失败,微信返回状态码：%d", result.Response.StatusCode), err, resp)

@@ -71,6 +71,7 @@ func ApiMwebh5(R *gin.Engine) {
 		wxPath := microwebPath.Group("/wx")
 		{
 			wxPath.GET("/getWxSign", wx.GetWxSign)
+			wxPath.GET("/getOpenId", wx.GetOpenId)
 		}
 	}
 

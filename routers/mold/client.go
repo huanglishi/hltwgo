@@ -220,6 +220,11 @@ func ApiClient(R *gin.Engine) {
 				apitestPath.DELETE("/delData", system.DelData)
 				apitestPath.POST("/upLock", system.UpLock)
 			}
+			//公众号菜单
+			wxmenuPath := systemPath.Group("/wxmenu")
+			{
+				wxmenuPath.GET("/getmenu", system.Getmenu)
+			}
 		}
 		//2.附件
 		filePath := clienPath.Group("/file")

@@ -52,12 +52,17 @@ func GetHome(context *gin.Context) {
 			} else {
 				pagedata["audit"] = false
 			}
-			//判断是否开通支付
-			ispay, _ := DB().Table("client_system_paymentconfig").Where("cuid", micweb["cuid"]).Value("mchAPIv3Key")
-			if ispay != nil && ispay != "" {
-				micweb["ispay"] = true
-			} else {
-				micweb["ispay"] = false
+			//获取微信支付配置
+			paymentconfig, _ := DB().Table("client_system_paymentconfig").Where("cuid", micweb["cuid"]).Fields("mchAPIv3Key,appId").First()
+			if paymentconfig != nil {
+				//获取微信公账号appid
+				micweb["wxappid"] = paymentconfig["appId"]
+				//判断是否开通支付
+				if paymentconfig["mchAPIv3Key"] != "" {
+					micweb["ispay"] = true
+				} else {
+					micweb["ispay"] = false
+				}
 			}
 		}
 		results.Success(context, "获取首页数据", pagedata, nil)
@@ -95,12 +100,17 @@ func GetPage(context *gin.Context) {
 					micweb["footer_tabbar"] = parameterf
 				}
 			}
-			//判断是否开通支付
-			ispay, _ := DB().Table("client_system_paymentconfig").Where("cuid", micweb["cuid"]).Value("mchAPIv3Key")
-			if ispay != nil && ispay != "" {
-				micweb["ispay"] = true
-			} else {
-				micweb["ispay"] = false
+			//获取微信支付配置
+			paymentconfig, _ := DB().Table("client_system_paymentconfig").Where("cuid", micweb["cuid"]).Fields("mchAPIv3Key,appId").First()
+			if paymentconfig != nil {
+				//获取微信公账号appid
+				micweb["wxappid"] = paymentconfig["appId"]
+				//判断是否开通支付
+				if paymentconfig["mchAPIv3Key"] != "" {
+					micweb["ispay"] = true
+				} else {
+					micweb["ispay"] = false
+				}
 			}
 			pagedata["micweb"] = micweb
 		}

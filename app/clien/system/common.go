@@ -1,7 +1,11 @@
 package system
 
 import (
+	"bytes"
 	"huling/app/model"
+	"io"
+	"net/http"
+	"time"
 
 	"github.com/gohouse/gorose/v2"
 )
@@ -97,4 +101,28 @@ func ArrayMerge(ss ...[]gorose.Data) []gorose.Data {
 		s = append(s, v...)
 	}
 	return s
+}
+
+// 返回错误
+func Get_x(url string) (string, error) {
+
+	// 超时时间：2秒
+	client := &http.Client{Timeout: 3 * time.Second}
+	resp, err := client.Get(url)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	var buffer [512]byte
+	result := bytes.NewBuffer(nil)
+	for {
+		n, err := resp.Body.Read(buffer[0:])
+		result.Write(buffer[0:n])
+		if err != nil && err == io.EOF {
+			break
+		} else if err != nil {
+			return "", err
+		}
+	}
+	return result.String(), nil
 }

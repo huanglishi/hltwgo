@@ -137,6 +137,40 @@ func GetWxSign(context *gin.Context) {
 	results.Success(context, "签名", wxSignRtn, nil)
 }
 
+// 获取微信openid
+func GetOpenId(context *gin.Context) {
+	code := context.DefaultQuery("code", "")
+	appid := context.DefaultQuery("appid", "")
+	Self_AppSecret, _ := DB().Table("client_system_wxconfig").Where("AppID", appid).Value("AppSecret")
+	var AppSecret interface{}
+	if Self_AppSecret == nil || Self_AppSecret == "" {
+		admin_AppSecret, _ := DB().Table("admin_system_wxconfig").Where("AppID", appid).Value("AppSecret")
+		AppSecret = admin_AppSecret
+	} else {
+		AppSecret = Self_AppSecret
+	}
+	mmcf_data, err := Get_x(fmt.Sprintf("https://api.weixin.qq.com/sns/oauth2/access_token?appid=%s&secret=%s&code=%s&grant_type=authorization_code", appid, AppSecret, code))
+	if err != nil {
+		results.Failed(context, "获取微信openid失败", err)
+	} else {
+		var data_parameter map[string]interface{}
+		if err := json.Unmarshal([]byte(mmcf_data), &data_parameter); err == nil {
+			if _, ok := data_parameter["errcode"]; ok {
+				results.Failed(context, "获取微信openid失败返回", data_parameter)
+			} else {
+				haseuser, _ := DB().Table("client_member").Where("openid", data_parameter["openid"]).Value("id")
+				if haseuser == nil {
+					DB().Table("client_member").Data(map[string]interface{}{
+						"openid":     data_parameter["openid"],
+						"createtime": time.Now().Unix(),
+					}).InsertGetId()
+				}
+				results.Success(context, "获取微信openid成功", data_parameter, nil)
+			}
+		}
+	}
+}
+
 // 生成指定长度的字符串
 func RandStringBytes(n int) string {
 	const letterBytes = "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"

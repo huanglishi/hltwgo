@@ -95,11 +95,11 @@ func AddOrder(context *gin.Context) {
 		parameter["accountID"] = userinfo["accountID"]
 		parameter["createtime"] = time.Now().Unix()
 		parameter["out_trade_no"] = utils.GetSnowflakeId()
-		res, err := DB().Table("client_product_order").Data(parameter).Insert()
+		getid, err := DB().Table("client_product_order").Data(parameter).InsertGetId()
 		if err != nil {
 			results.Failed(context, "用户下单失败！", err)
 		} else {
-			results.Success(context, "用户下单成功1", res, userinfo)
+			results.Success(context, "用户下单成功1", map[string]interface{}{"order_id": getid, "out_trade_no": parameter["out_trade_no"]}, nil)
 		}
 	}
 }
