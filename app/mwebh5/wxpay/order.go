@@ -151,11 +151,15 @@ func WxJsapiPay(cgin *gin.Context) {
 			}
 			/************开始支付逻辑************************/
 			svc := jsapi.JsapiApiService{Client: client}
-			// 得到prepay_id，以及调起支付所需的参数和签名
+			// 关闭订单
+			// svc.CloseOrder(ctx, jsapi.CloseOrderRequest{
+			// 	OutTradeNo: core.String(orderdata["out_trade_no"].(string)),
+			// 	Mchid:      core.String(paymentconfig["mchID"].(string)),
+			// })
 			//计算价格
 			price_fl, _ := strconv.ParseFloat(orderdata["price"].(string), 64)
 			price_int := int64(price_fl * 100)
-			// pay_out_order := GenerateCode()
+			//Jsapi支付下单
 			resp, result, err := svc.PrepayWithRequestPayment(ctx,
 				jsapi.PrepayRequest{
 					Appid:       core.String(paymentconfig["appId"].(string)),
@@ -163,7 +167,8 @@ func WxJsapiPay(cgin *gin.Context) {
 					Description: core.String(orderdata["title"].(string)),
 					OutTradeNo:  core.String(orderdata["out_trade_no"].(string)),
 					Attach:      core.String(orderdata["note"].(string)),
-					NotifyUrl:   core.String("https://tuwen.hulingyun.cn/mwebh5/wxpay/paynotify/"),
+					// NotifyUrl:   core.String("https://tuwen.hulingyun.cn/mwebh5/wxpay/paynotify/w1"),
+					NotifyUrl: core.String(fmt.Sprintf("https://tuwen.hulingyun.cn/mwebh5/wxpay/paynotify/%s", order_id)),
 					Amount: &jsapi.Amount{
 						Total: core.Int64(price_int),
 					},

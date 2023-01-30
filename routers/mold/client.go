@@ -224,6 +224,8 @@ func ApiClient(R *gin.Engine) {
 			wxmenuPath := systemPath.Group("/wxmenu")
 			{
 				wxmenuPath.GET("/getmenu", system.Getmenu)
+				wxmenuPath.POST("/saveMenu", system.SaveMenu)
+				wxmenuPath.POST("/saveMenuOnly", system.SaveMenuOnly)
 			}
 		}
 		//2.附件

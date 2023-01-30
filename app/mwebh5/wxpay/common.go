@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/gohouse/gorose/v2"
+	jsoniter "github.com/json-iterator/go"
 )
 
 func DB() gorose.IOrm {
@@ -20,6 +21,15 @@ func StingToJSON(str interface{}) []interface{} {
 	var parameter []interface{}
 	_ = json.Unmarshal([]byte(str.(string)), &parameter)
 	return parameter
+}
+
+// JSONMarshalToString JSON编码为字符串
+func JSONMarshalToString(v interface{}) string {
+	s, err := jsoniter.MarshalToString(v)
+	if err != nil {
+		return ""
+	}
+	return s
 }
 
 // 获取时间部分

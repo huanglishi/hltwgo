@@ -50,6 +50,8 @@ func validityAPi() gin.HandlerFunc {
 				strings.Contains(c.Request.URL.Path, "webclient") ||
 				strings.Contains(c.Request.URL.Path, "webbusiness") ||
 				strings.Contains(c.Request.URL.Path, "MP_verify_0HkL8VPApFK29Tb8.txt") ||
+				strings.Contains(c.Request.URL.Path, "/mwebh5/wxpay/paynotify") ||
+				strings.Contains(c.Request.URL.Path, "/mwebh5/wxpay/paynotify1") ||
 				strings.Contains(c.Request.URL.Path, "common/uploadfile/getimage") { //过滤附件访问接口
 				c.Next()
 			} else {

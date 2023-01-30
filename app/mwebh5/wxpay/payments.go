@@ -2,184 +2,39 @@ package wxpay
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"huling/utils/results"
-	"io/ioutil"
 	"log"
+	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/wechatpay-apiv3/wechatpay-go/core"
 	"github.com/wechatpay-apiv3/wechatpay-go/core/auth/verifiers"
 	"github.com/wechatpay-apiv3/wechatpay-go/core/downloader"
 	"github.com/wechatpay-apiv3/wechatpay-go/core/notify"
-	"github.com/wechatpay-apiv3/wechatpay-go/core/option"
-	"github.com/wechatpay-apiv3/wechatpay-go/services/certificates"
 	"github.com/wechatpay-apiv3/wechatpay-go/services/payments"
-	"github.com/wechatpay-apiv3/wechatpay-go/services/payments/h5"
-	"github.com/wechatpay-apiv3/wechatpay-go/services/payments/jsapi"
 	"github.com/wechatpay-apiv3/wechatpay-go/utils"
 )
 
-// 1微信支付平台证书
-func Getwechatpay(cgin *gin.Context) {
-	const (
-		mchID                      string = "190000****"                               // 商户号
-		mchCertificateSerialNumber string = "3775B6A45ACD588826D15E583A95F5DD********" // 商户证书序列号
-		mchAPIv3Key                string = "2ab9****************************"         // 商户APIv3密钥
-	)
-	// 使用 utils 提供的函数从本地文件中加载商户私钥，商户私钥会用来生成请求的签名
-	mchPrivateKey, err := utils.LoadPrivateKeyWithPath("/resource/staticfile/merchant/apiclient_key.pem")
-	if err != nil {
-		log.Fatal("load merchant private key error")
-	}
-
-	ctx := context.Background()
-	// 使用商户私钥等初始化 client，并使它具有自动定时获取微信支付平台证书的能力
-	opts := []core.ClientOption{
-		option.WithWechatPayAutoAuthCipher(mchID, mchCertificateSerialNumber, mchPrivateKey, mchAPIv3Key),
-	}
-	client, err := core.NewClient(ctx, opts...)
-	if err != nil {
-		log.Fatalf("new wechat pay client err:%s", err)
-	}
-	/************开始支付逻辑************************/
-
-	// 发送请求，以下载微信支付平台证书为例
-	// https://pay.weixin.qq.com/wiki/doc/apiv3/wechatpay/wechatpay5_1.shtml
-	svc := certificates.CertificatesApiService{Client: client}
-	resp, result, err := svc.DownloadCertificates(ctx)
-	log.Printf("status=%d resp=%s", result.Response.StatusCode, resp)
-	// 通过私钥的文件路径内容加载私钥
-	results.Success(cgin, "获取页面数据", string(""), nil)
-}
-
-// 2 JSAPI下单 为例
-func Getjsapi(cgin *gin.Context) {
-	const (
-		mchID                      string = "190000****"                               // 商户号
-		mchCertificateSerialNumber string = "3775B6A45ACD588826D15E583A95F5DD********" // 商户证书序列号
-		mchAPIv3Key                string = "2ab9****************************"         // 商户APIv3密钥
-	)
-
-	// 使用 utils 提供的函数从本地文件中加载商户私钥，商户私钥会用来生成请求的签名
-	mchPrivateKey, err := utils.LoadPrivateKeyWithPath("/resource/staticfile/merchant/apiclient_key.pem")
-	if err != nil {
-		log.Fatal("load merchant private key error")
-	}
-
-	ctx := context.Background()
-	// 使用商户私钥等初始化 client，并使它具有自动定时获取微信支付平台证书的能力
-	opts := []core.ClientOption{
-		option.WithWechatPayAutoAuthCipher(mchID, mchCertificateSerialNumber, mchPrivateKey, mchAPIv3Key),
-	}
-	client, err := core.NewClient(ctx, opts...)
-	if err != nil {
-		log.Fatalf("new wechat pay client err:%s", err)
-	}
-	/************开始支付逻辑************************/
-	svc := jsapi.JsapiApiService{Client: client}
-	// 得到prepay_id，以及调起支付所需的参数和签名
-	resp, result, err := svc.PrepayWithRequestPayment(ctx,
-		jsapi.PrepayRequest{
-			Appid:       core.String("wxd678efh567hg6787"),
-			Mchid:       core.String("1900009191"),
-			Description: core.String("Image形象店-深圳腾大-QQ公仔"),
-			OutTradeNo:  core.String("1217752501201407033233368018"),
-			Attach:      core.String("自定义数据说明"),
-			NotifyUrl:   core.String("https://www.weixin.qq.com/wxpay/pay.php"),
-			Amount: &jsapi.Amount{
-				Total: core.Int64(100),
-			},
-			Payer: &jsapi.Payer{
-				Openid: core.String("oUpF8uMuAJO_M2pxb1Q9zNjWeS6o"),
-			},
-		},
-	)
-	if err == nil {
-		log.Println(resp)
-	} else {
-		log.Println(err)
-	}
-	// 通过私钥的文件路径内容加载私钥
-	results.Success(cgin, "获取页面数据", result, nil)
-}
-
-// 3获取h5支付跳转链接
-func Geth5url(cgin *gin.Context) {
-	const (
-		mchID                      string = "190000****"                               // 商户号
-		mchCertificateSerialNumber string = "3775B6A45ACD588826D15E583A95F5DD********" // 商户证书序列号
-		mchAPIv3Key                string = "2ab9****************************"         // 商户APIv3密钥
-	)
-	// 使用 utils 提供的函数从本地文件中加载商户私钥，商户私钥会用来生成请求的签名
-	mchPrivateKey, err := utils.LoadPrivateKeyWithPath("/resource/staticfile/merchant/apiclient_key.pem")
-	if err != nil {
-		log.Fatal("load merchant private key error")
-	}
-
-	ctx := context.Background()
-	// 使用商户私钥等初始化 client，并使它具有自动定时获取微信支付平台证书的能力
-	opts := []core.ClientOption{
-		option.WithWechatPayAutoAuthCipher(mchID, mchCertificateSerialNumber, mchPrivateKey, mchAPIv3Key),
-	}
-	client, err := core.NewClient(ctx, opts...)
-	if err != nil {
-		log.Fatalf("new wechat pay client err:%s", err)
-	}
-	/************开始支付逻辑************************/
-	svc := h5.H5ApiService{Client: client}
-	// 得到prepay_id，以及调起支付所需的参数和签名
-	resp, result, err := svc.Prepay(ctx,
-		h5.PrepayRequest{
-			Appid:       core.String("wxd678efh567hg6787"),                      //公众号ID
-			Mchid:       core.String("1900009191"),                              //直连商户号
-			Description: core.String("Image形象店-深圳腾大-QQ公仔"),                      // 商品描述
-			OutTradeNo:  core.String("1217752501201407033233368018"),            // 商户订单号
-			Attach:      core.String("自定义数据说明"),                                 // 附加数据
-			NotifyUrl:   core.String("https://www.weixin.qq.com/wxpay/pay.php"), // 有效性：1. HTTPS；2. 不允许携带查询串。
-			Amount: &h5.Amount{
-				Total:    core.Int64(1),
-				Currency: core.String("CNY"),
-			},
-			SceneInfo: &h5.SceneInfo{
-				PayerClientIp: core.String("127.0.0.1"),
-				// 商户端设备号
-				DeviceId: core.String("12346785"),
-				H5Info: &h5.H5Info{
-					Type: core.String("iOSAndroidWap"),
-				},
-			},
-		},
-	)
-	if err == nil {
-		log.Println(resp)
-	} else {
-		log.Println(err)
-	}
-	results.Success(cgin, "获取页面数据", result, resp)
-}
-
 // 4 基础支付的回调通知
 func Paynotify(cgin *gin.Context) {
-	//获取post传过来的data
-	body, _ := ioutil.ReadAll(cgin.Request.Body)
-	var parameter map[string]interface{}
-	_ = json.Unmarshal(body, &parameter)
-	fmt.Println("-----支付回调---------")
-	fmt.Println(parameter)
-	results.Success(cgin, "回调通知成功", nil, nil)
-	return
-	const (
-		mchID                      string = "1635953990"                               // 商户号
-		mchCertificateSerialNumber string = "3775B6A45ACD588826D15E583A95F5DD********" // 商户证书序列号
-		mchAPIv3Key                string = "2ab9****************************"         // 商户APIv3密钥
-	)
-
+	idstr := cgin.Param("id")
+	string_slice := strings.Split(idstr, "/")
+	cuid, _ := DB().Table("client_product_order").Where("id", string_slice[1]).Value("cuid")
+	paymentconfig, _ := DB().Table("client_system_paymentconfig").Where("cuid", cuid).Fields("id,appId,mchID,mchAPIv3Key,mchCertificateSerialNumber,privatekey").First()
+	//配置参数
+	mchID := paymentconfig["mchID"].(string)                                           // 商户号
+	mchCertificateSerialNumber := paymentconfig["mchCertificateSerialNumber"].(string) // 商户证书序列号
+	mchAPIv3Key := paymentconfig["mchAPIv3Key"].(string)
 	// 使用 utils 提供的函数从本地文件中加载商户私钥，商户私钥会用来生成请求的签名
-	mchPrivateKey, err := utils.LoadPrivateKeyWithPath("/resource/staticfile/merchant/apiclient_key.pem")
+	pemPath := fmt.Sprintf("./%s", paymentconfig["privatekey"])
+	mchPrivateKey, err := utils.LoadPrivateKeyWithPath(pemPath)
 	if err != nil {
 		log.Fatal("load merchant private key error")
+		cgin.JSON(500, gin.H{
+			"code":    "FAIL",
+			"message": "失败",
+		})
+		return
 	}
 	//支付回调
 	fmt.Println("-----支付回调---------")
@@ -187,20 +42,51 @@ func Paynotify(cgin *gin.Context) {
 	ctx := context.Background()
 	// 1. 使用 `RegisterDownloaderWithPrivateKey` 注册下载器
 	derr := downloader.MgrInstance().RegisterDownloaderWithPrivateKey(ctx, mchPrivateKey, mchCertificateSerialNumber, mchID, mchAPIv3Key)
-	// 2. 获取商户号对应的微信支付平台证书访问器
-	certificateVisitor := downloader.MgrInstance().GetCertificateVisitor(mchID)
-	// 3. 使用证书访问器初始化 `notify.Handler`
-	handler := notify.NewNotifyHandler(mchAPIv3Key, verifiers.NewSHA256WithRSAVerifier(certificateVisitor))
-
-	transaction := new(payments.Transaction)
-	notifyReq, err := handler.ParseNotifyRequest(context.Background(), cgin.Request, transaction)
-	// 如果验签未通过，或者解密失败
-	if err != nil {
-		fmt.Println(err)
-		return
+	if derr != nil {
+		fmt.Println("-----注册下载器失败---------")
+		fmt.Println(derr)
+		cgin.JSON(500, gin.H{
+			"code":    "FAIL",
+			"message": "失败",
+		})
+	} else {
+		// 2. 获取商户号对应的微信支付平台证书访问器
+		certificateVisitor := downloader.MgrInstance().GetCertificateVisitor(mchID)
+		// 3. 使用证书访问器初始化 `notify.Handler`
+		handler := notify.NewNotifyHandler(mchAPIv3Key, verifiers.NewSHA256WithRSAVerifier(certificateVisitor))
+		transaction := new(payments.Transaction)
+		_, err := handler.ParseNotifyRequest(context.Background(), cgin.Request, transaction)
+		// 如果验签未通过，或者解密失败
+		if err != nil {
+			fmt.Println("如果验签未通过，或者解密失败")
+			fmt.Println(err)
+			cgin.JSON(500, gin.H{
+				"code":    "FAIL",
+				"message": "失败",
+			})
+		} else { //支付成功
+			DB().Table("logs").Data(map[string]interface{}{
+				"path":       "处理通知内容",
+				"createtime": time.Now().Unix(),
+				"param":      JSONMarshalToString(transaction),
+			}).Insert()
+			//更新支付单号
+			paytime := time.Now().Unix()
+			DB().Table("client_product_order").Where("out_trade_no", transaction.OutTradeNo).Data(map[string]interface{}{"transaction_id": transaction.TransactionId, "status": 1, "paytime": paytime, "time_end": paytime}).Update()
+			cgin.JSON(200, nil) //支付成功-通知应答
+		}
 	}
-	// 处理通知内容
-	fmt.Println(notifyReq.Summary)
-	fmt.Println(transaction.TransactionId)
-	results.Success(cgin, "获取页面数据", handler, derr)
+
+}
+
+// 4 基础支付的回调通知
+func Paynotify1(cgin *gin.Context) {
+	idstr := cgin.Param("id")
+	string_slice := strings.Split(idstr, "/")
+	cgin.JSON(200, gin.H{
+		"code":    1,
+		"message": "获取参数",
+		"result":  string_slice[1],
+		"time":    time.Now().Unix(),
+	})
 }

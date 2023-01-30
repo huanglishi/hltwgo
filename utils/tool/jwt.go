@@ -37,6 +37,8 @@ var (
 		"/client/cancelapp/user/login",
 		"/client/user/refreshtoken",
 		"/MP_verify_0HkL8VPApFK29Tb8.txt",
+		"/mwebh5/wxpay/paynotify",
+		"/mwebh5/wxpay/paynotify1",
 	}
 	// effectTime = 2 * time.Minute //两分钟
 )

@@ -2,12 +2,15 @@ package system
 
 import (
 	"bytes"
+	"encoding/json"
 	"huling/app/model"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"time"
 
 	"github.com/gohouse/gorose/v2"
+	jsoniter "github.com/json-iterator/go"
 )
 
 func DB() gorose.IOrm {
@@ -125,4 +128,37 @@ func Get_x(url string) (string, error) {
 		}
 	}
 	return result.String(), nil
+}
+
+// 发送POST请求
+// url:请求地址，data:POST请求提交的数据,contentType:请求体格式，如：application/json
+// content:请求放回的内容
+func Post(url string, data interface{}, contentType string) (string, error) {
+	if contentType == "" {
+		contentType = "application/json"
+	}
+	jsonStr, _ := json.Marshal(data)
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
+	req.Header.Add("content-type", contentType)
+	if err != nil {
+		return "", err
+	}
+	defer req.Body.Close()
+	client := &http.Client{Timeout: 5 * time.Second}
+	resp, error := client.Do(req)
+	if error != nil {
+		return "", error
+	}
+	defer resp.Body.Close()
+	result, _ := ioutil.ReadAll(resp.Body)
+	return string(result), nil
+}
+
+// JSONMarshalToString JSON编码为字符串
+func JSONMarshalToString(v interface{}) string {
+	s, err := jsoniter.MarshalToString(v)
+	if err != nil {
+		return ""
+	}
+	return s
 }
