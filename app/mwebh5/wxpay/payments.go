@@ -72,7 +72,7 @@ func Paynotify(cgin *gin.Context) {
 			}).Insert()
 			//更新支付单号
 			paytime := time.Now().Unix()
-			DB().Table("client_product_order").Where("out_trade_no", transaction.OutTradeNo).Data(map[string]interface{}{"transaction_id": transaction.TransactionId, "status": 1, "paytime": paytime, "time_end": paytime}).Update()
+			DB().Table("client_product_order").Where("out_trade_no", transaction.OutTradeNo).Data(map[string]interface{}{"transaction_id": transaction.TransactionId, "total_fee": transaction.Amount.Total, "status": 1, "paytime": paytime, "time_end": paytime}).Update()
 			cgin.JSON(200, nil) //支付成功-通知应答
 		}
 	}

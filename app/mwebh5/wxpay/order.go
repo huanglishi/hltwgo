@@ -7,6 +7,7 @@ import (
 	"log"
 	"net"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/wechatpay-apiv3/wechatpay-go/core"
@@ -113,76 +114,99 @@ func WxJsapiPay(cgin *gin.Context) {
 	} else if wxopenid == "" {
 		results.Failed(cgin, "请求参数（openid）不能为空", nil)
 	} else {
-		orderdata, ordererr := DB().Table("client_product_order").Where("id", order_id).Fields("id,cuid,uid,product_id,title,price,out_trade_no,note").First()
+		orderdata, ordererr := DB().Table("client_product_order").Where("id", order_id).Fields("id,cuid,uid,prepay_id,prepay_time,product_id,title,price,number,out_trade_no,note").First()
 		if ordererr != nil {
 			results.Failed(cgin, "获取订单数据失败", ordererr)
 		} else {
-			paymentconfig, payconfrerr := DB().Table("client_system_paymentconfig").Where("cuid", orderdata["cuid"]).Fields("id,appId,mchID,mchAPIv3Key,mchCertificateSerialNumber,privatekey").First()
-			if payconfrerr != nil {
-				results.Failed(cgin, "获取支付配置失败", payconfrerr)
-				return
-			}
-			if paymentconfig == nil {
-				results.Failed(cgin, "支付配置未配置", orderdata)
-				return
-			}
-			//配置参数
-			mchID := paymentconfig["mchID"].(string)                                           // 商户号
-			mchCertificateSerialNumber := paymentconfig["mchCertificateSerialNumber"].(string) // 商户证书序列号
-			mchAPIv3Key := paymentconfig["mchAPIv3Key"].(string)                               // 商户APIv3密钥
+			if orderdata["prepay_id"] == nil || orderdata["prepay_id"] == "" {
+				paymentconfig, payconfrerr := DB().Table("client_system_paymentconfig").Where("cuid", orderdata["cuid"]).Fields("id,appId,mchID,mchAPIv3Key,mchCertificateSerialNumber,privatekey").First()
+				if payconfrerr != nil {
+					results.Failed(cgin, "获取支付配置失败", payconfrerr)
+					return
+				}
+				if paymentconfig == nil {
+					results.Failed(cgin, "支付配置未配置", orderdata)
+					return
+				}
+				//配置参数
+				mchID := paymentconfig["mchID"].(string)                                           // 商户号
+				mchCertificateSerialNumber := paymentconfig["mchCertificateSerialNumber"].(string) // 商户证书序列号
+				mchAPIv3Key := paymentconfig["mchAPIv3Key"].(string)                               // 商户APIv3密钥
 
-			// 使用 utils 提供的函数从本地文件中加载商户私钥，商户私钥会用来生成请求的签名
-			pemPath := fmt.Sprintf("./%s", paymentconfig["privatekey"])
-			mchPrivateKey, err := utils.LoadPrivateKeyWithPath(pemPath)
-			if err != nil {
-				results.Failed(cgin, "加载本地商户私钥失败", err)
-				return
-			}
+				// 使用 utils 提供的函数从本地文件中加载商户私钥，商户私钥会用来生成请求的签名
+				pemPath := fmt.Sprintf("./%s", paymentconfig["privatekey"])
+				mchPrivateKey, err := utils.LoadPrivateKeyWithPath(pemPath)
+				if err != nil {
+					results.Failed(cgin, "加载本地商户私钥失败", err)
+					return
+				}
 
-			ctx := context.Background()
-			// 使用商户私钥等初始化 client，并使它具有自动定时获取微信支付平台证书的能力
-			opts := []core.ClientOption{
-				option.WithWechatPayAutoAuthCipher(mchID, mchCertificateSerialNumber, mchPrivateKey, mchAPIv3Key),
-			}
-			client, err := core.NewClient(ctx, opts...)
-			if err != nil {
-				results.Failed(cgin, fmt.Sprintf("新微信支付客户端出错:%s", err), err)
-				return
-			}
-			/************开始支付逻辑************************/
-			svc := jsapi.JsapiApiService{Client: client}
-			// 关闭订单
-			// svc.CloseOrder(ctx, jsapi.CloseOrderRequest{
-			// 	OutTradeNo: core.String(orderdata["out_trade_no"].(string)),
-			// 	Mchid:      core.String(paymentconfig["mchID"].(string)),
-			// })
-			//计算价格
-			price_fl, _ := strconv.ParseFloat(orderdata["price"].(string), 64)
-			price_int := int64(price_fl * 100)
-			//Jsapi支付下单
-			resp, result, err := svc.PrepayWithRequestPayment(ctx,
-				jsapi.PrepayRequest{
-					Appid:       core.String(paymentconfig["appId"].(string)),
-					Mchid:       core.String(paymentconfig["mchID"].(string)),
-					Description: core.String(orderdata["title"].(string)),
-					OutTradeNo:  core.String(orderdata["out_trade_no"].(string)),
-					Attach:      core.String(orderdata["note"].(string)),
-					// NotifyUrl:   core.String("https://tuwen.hulingyun.cn/mwebh5/wxpay/paynotify/w1"),
-					NotifyUrl: core.String(fmt.Sprintf("https://tuwen.hulingyun.cn/mwebh5/wxpay/paynotify/%s", order_id)),
-					Amount: &jsapi.Amount{
-						Total: core.Int64(price_int),
+				ctx := context.Background()
+				// 使用商户私钥等初始化 client，并使它具有自动定时获取微信支付平台证书的能力
+				opts := []core.ClientOption{
+					option.WithWechatPayAutoAuthCipher(mchID, mchCertificateSerialNumber, mchPrivateKey, mchAPIv3Key),
+				}
+				client, err := core.NewClient(ctx, opts...)
+				if err != nil {
+					results.Failed(cgin, fmt.Sprintf("新微信支付客户端出错:%s", err), err)
+					return
+				}
+				/************开始支付逻辑************************/
+				svc := jsapi.JsapiApiService{Client: client}
+				//计算价格
+				price_fl, _ := strconv.ParseFloat(orderdata["price"].(string), 64)
+				number_int := orderdata["number"].(int64)
+				price_int := int64(price_fl * 100)
+				price_int = price_int * number_int
+				//Jsapi支付下单
+				resp, result, err := svc.PrepayWithRequestPayment(ctx,
+					jsapi.PrepayRequest{
+						Appid:       core.String(paymentconfig["appId"].(string)),
+						Mchid:       core.String(paymentconfig["mchID"].(string)),
+						Description: core.String(orderdata["title"].(string)),
+						OutTradeNo:  core.String(orderdata["out_trade_no"].(string)),
+						Attach:      core.String(orderdata["note"].(string)),
+						// NotifyUrl:   core.String("https://tuwen.hulingyun.cn/mwebh5/wxpay/paynotify/w1"),
+						NotifyUrl: core.String(fmt.Sprintf("https://tuwen.hulingyun.cn/mwebh5/wxpay/paynotify/%s", order_id)),
+						Amount: &jsapi.Amount{
+							Total: core.Int64(price_int),
+						},
+						Payer: &jsapi.Payer{
+							Openid: core.String(wxopenid), //微信公众号用户openid
+						},
 					},
-					Payer: &jsapi.Payer{
-						Openid: core.String(wxopenid), //微信公众号用户openid
-					},
-				},
-			)
-			if err == nil {
-				//更新支付单号
-				DB().Table("client_product_order").Where("id", order_id).Data(map[string]interface{}{"prepay_id": resp.PrepayId}).Update()
-				results.Success(cgin, "jsAPi支付统一订单", resp, result.Response.StatusCode)
-			} else {
-				results.Success(cgin, fmt.Sprintf("jsAPi支付统一订单失败,微信返回状态码：%d", result.Response.StatusCode), err, resp)
+				)
+				if err == nil {
+					//更新支付单号
+					DB().Table("client_product_order").Where("id", order_id).Data(map[string]interface{}{"prepay_id": resp.PrepayId, "prepay_time": time.Now().Unix()}).Update()
+					DB().Table("client_product_order_prepaydata").Data(map[string]interface{}{
+						"appId":     resp.Appid,
+						"nonceStr":  resp.NonceStr,
+						"package":   resp.Package,
+						"paySign":   resp.PaySign,
+						"prepay_id": resp.PrepayId,
+						"signType":  resp.SignType,
+						"timeStamp": resp.TimeStamp,
+					}).Insert()
+					results.Success(cgin, "jsAPi支付统一订单", resp, nil)
+				} else {
+					results.Success(cgin, fmt.Sprintf("jsAPi支付统一订单失败,微信返回状态码：%d", result.Response.StatusCode), err, resp)
+				}
+			} else { //已经下单
+				timestamp := strconv.FormatInt(time.Now().Unix(), 10) //10位时间戳
+				//当前时间戳转int
+				intNum, _ := strconv.Atoi(timestamp)
+				timestampint := int64(intNum)
+				prepay_time_int := orderdata["prepay_time"].(int64) //数据库的时间传戳
+				diff := timestampint - prepay_time_int              //
+				gethour := diff / 3600
+				var towhur int64 = 2
+				if gethour < towhur {
+					pdata, _ := DB().Table("client_product_order_prepaydata").Where("prepay_id", orderdata["prepay_id"]).Fields("appId,nonceStr,package,paySign,prepay_id,signType,timeStamp").First()
+					results.Success(cgin, "获取两个小时内容的下单信息", pdata, nil)
+				} else {
+					results.Failed(cgin, "订单支付已经过期", nil)
+				}
 			}
 		}
 	}

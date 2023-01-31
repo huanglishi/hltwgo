@@ -18,7 +18,7 @@ func GetOrderList(context *gin.Context) {
 	if uid == "0" {
 		results.Failed(context, "请传参数uid", nil)
 	} else {
-		list, err := DB().Table("client_product_order").Where("uid", uid).Fields("id,status,out_trade_no,product_id,title,number,price,total_fee,address,logistics_name,logistics_mobile,note").Order("id desc").Get()
+		list, err := DB().Table("client_product_order").Where("uid", uid).Fields("id,status,prepay_id,prepay_time,out_trade_no,product_id,title,number,price,total_fee,address,logistics_name,logistics_mobile,note").Order("id desc").Get()
 		if err != nil {
 			results.Failed(context, "获取订单失败！", err)
 		} else {
@@ -39,6 +39,20 @@ func GetOrderList(context *gin.Context) {
 					val["images"] = newimg
 				} else {
 					val["images"] = make([]interface{}, 0)
+				}
+				if val["prepay_id"] != "" && val["prepay_id"] != nil {
+					//判断过期
+					timestamp := strconv.FormatInt(time.Now().Unix(), 10) //10位时间戳
+					//当前时间戳转int
+					intNum, _ := strconv.Atoi(timestamp)
+					timestampint := int64(intNum)
+					prepay_time_int := val["prepay_time"].(int64) //数据库的时间传戳
+					diff := timestampint - prepay_time_int        //
+					gethour := diff / 3600
+					var towhur int64 = 2
+					if gethour > towhur { //支付已过期
+						val["status"] = 12
+					}
 				}
 			}
 			results.Success(context, "获取订单列表", list, nil)
@@ -77,6 +91,21 @@ func GetOrderDetail(context *gin.Context) {
 			//地址
 			address, _ := DB().Table("client_member_address").Where("id", data["address_id"]).Fields("name,mobile,province_name,city_name,area_name,address").First()
 			data["address"] = address
+			//判断订单过期
+			if data["prepay_id"] != "" && data["prepay_id"] != nil {
+				//判断过期
+				timestamp := strconv.FormatInt(time.Now().Unix(), 10) //10位时间戳
+				//当前时间戳转int
+				intNum, _ := strconv.Atoi(timestamp)
+				timestampint := int64(intNum)
+				prepay_time_int := data["prepay_time"].(int64) //数据库的时间传戳
+				diff := timestampint - prepay_time_int         //
+				gethour := diff / 3600
+				var towhur int64 = 2
+				if gethour > towhur { //支付已过期
+					data["status"] = 12
+				}
+			}
 			results.Success(context, "获取订单详情", data, nil)
 		}
 	}

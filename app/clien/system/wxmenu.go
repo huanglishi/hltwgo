@@ -22,19 +22,16 @@ func Getmenu(context *gin.Context) {
 	wxconfig, _ := DB().Table("client_system_wxconfig").Where("cuid", user.ClientID).Fields("id,name,AppID,AppSecret,expires_access_token,access_token").First()
 	//更新access_token
 	AccessTokenHost := fmt.Sprintf("https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=%s&secret=%s", wxconfig["AppID"], wxconfig["AppSecret"])
-	timestamp := strconv.FormatInt(time.Now().Unix(), 10) //10位时间戳
 	var (
 		access_token  string
 		wxAccessToken WxAccessToken
 	)
-	//当前时间戳转int
-	intNum, _ := strconv.Atoi(timestamp)
-	timestampint := int64(intNum)
+	timestamp := time.Now().Unix()                                       //10位时间戳
 	expires_access_token_int := wxconfig["expires_access_token"].(int64) //数据库的时间传戳
 	//获取access_token，如果缓存中有，则直接取出数据使用；否则重新调用微信端接口获取
 	client := &http.Client{}
 	//判断access_token是否过期
-	if wxconfig["access_token"] == "" || expires_access_token_int == 0 || (timestampint-expires_access_token_int) > 7200 { //重新请求access_token
+	if wxconfig["access_token"] == "" || expires_access_token_int == 0 || (timestamp-expires_access_token_int) > 7000 { //重新请求access_token
 		request, _ := http.NewRequest("GET", AccessTokenHost, nil)
 		response, _ := client.Do(request)
 		defer response.Body.Close()
@@ -55,7 +52,7 @@ func Getmenu(context *gin.Context) {
 			return
 		}
 		//添加access_tokens时间
-		DB().Table("client_system_wxconfig").Where("id", wxconfig["id"]).Data(map[string]interface{}{"access_token": access_token, "expires_access_token": timestamp}).Update()
+		DB().Table("client_system_wxconfig").Where("id", wxconfig["id"]).Data(map[string]interface{}{"access_token": access_token, "expires_access_token": time.Now().Unix()}).Update()
 	} else {
 		//缓存中存在access_token，直接读取
 		access_token = wxconfig["access_token"].(string)
@@ -104,7 +101,7 @@ func SaveMenu(context *gin.Context) {
 	if wxconfig["access_token"] == "" || expires_access_token_int == 0 || (timestampint-expires_access_token_int) > 7200 { //重新请求access_token
 		request, _ := http.NewRequest("GET", AccessTokenHost, nil)
 		response, _ := client.Do(request)
-		defer response.Body.Close()
+		defer response.Body.Close() //最后再执行
 		body, err := ioutil.ReadAll(response.Body)
 		if err != nil {
 			results.Failed(context, "请求AccessToken失败1", err.Error())
@@ -174,6 +171,48 @@ func SaveMenuOnly(context *gin.Context) {
 		} else {
 			results.Success(context, "添加成功！", addres, nil)
 		}
+	}
+}
+
+// 获取微站页面
+func Getwebpage(context *gin.Context) {
+	//当前用户
+	getuser, _ := context.Get("user")
+	user := getuser.(*utils.UserClaims)
+	micweb_id, _ := DB().Table("client_micweb").Where("cuid", user.ClientID).Where("is_select", 1).Value("id")
+	//获取站点下的页面
+	list, err := DB().Table("client_micweb_page").Where("micweb_id", micweb_id).Fields("id,ishome,name,uuid,micweb_id").Order("orderNum asc").Get()
+	if err != nil {
+		results.Failed(context, "添加失败", err)
+	} else {
+		results.Success(context, "获取微站页面", list, nil)
+	}
+}
+
+// 获取菜单
+func GetMenuList(context *gin.Context) {
+	//当前用户
+	getuser, _ := context.Get("user")
+	user := getuser.(*utils.UserClaims)
+	//获取站点下的页面
+	list, err := DB().Table("client_system_wxmenu").Where("cuid", user.ClientID).Order("id desc").Get()
+	if err != nil {
+		results.Failed(context, "获取菜单失败", err)
+	} else {
+		results.Success(context, "获取菜单", list, nil)
+	}
+}
+
+// 删除菜单
+func DelMenu(context *gin.Context) {
+	body, _ := ioutil.ReadAll(context.Request.Body)
+	var parameter map[string]interface{}
+	_ = json.Unmarshal(body, &parameter)
+	res2, err := DB().Table("client_system_wxmenu").Where("id", parameter["id"]).Delete()
+	if err != nil {
+		results.Failed(context, "删除失败", err)
+	} else {
+		results.Success(context, "删除成功！", res2, nil)
 	}
 }
 
