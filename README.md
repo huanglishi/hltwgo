@@ -11,11 +11,11 @@
 配置文件：在conf\app.conf文件的allowurl字段添加你的域名
 ### 2请求提示 “您的请求不合法，请按规范请求数据!”
 #### 解决方式
-（1）需要验证则在请求头添加 {"verify-time":当前时间戳,"verify-encrypt":md5(特定字符串+当前时间戳)},特定字符串和conf\app.conf文件下的apisecret值相同
+（1）需要验证则在请求头添加 {"verify-time":当前时间戳,"verify-encrypt":md5(特定字符串+当前时间戳)},特定字符串和conf\app.conf文件下的apisecret值相同  
  (2) 不需要验证的在配置文件：routers\route.go文件中的validityAPi()方法下 strings.Contains(c.Request.URL.Path, "您新增的访问路径")
 ### 3请求提示 “和token相关的错误!”
 #### 解决方式
-（1）如果您接口需要token验证则在请求头添加{Authorization:your token}
+（1）如果您接口需要token验证则在请求头添加{Authorization:your token}  
  (2) 不需要token验证（例如：登录）则在配置文件：utils\tool\jwt.go文件中的noVerify下添加“您新增的访问路径”
 ## 本地运行项目
  安装mysql数据库，导入数据文件（更目录下有hltw.sql，对应服务器上tuwen_saa_go）
