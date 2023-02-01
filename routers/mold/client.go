@@ -229,6 +229,7 @@ func ApiClient(R *gin.Engine) {
 				wxmenuPath.GET("/getwebpage", system.Getwebpage)
 				wxmenuPath.GET("/getMenuList", system.GetMenuList)
 				wxmenuPath.DELETE("/delMenu", system.DelMenu)
+				wxmenuPath.GET("/getArticles", system.GetArticles)
 			}
 		}
 		//2.附件

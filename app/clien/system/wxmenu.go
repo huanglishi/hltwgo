@@ -60,17 +60,21 @@ func Getmenu(context *gin.Context) {
 	//获取 菜单接口
 	wxmenu_data, err := Get_x(fmt.Sprintf("https://api.weixin.qq.com/cgi-bin/get_current_selfmenu_info?access_token=%s", access_token))
 	if err != nil {
-		results.Failed(context, "获取微信openid失败", err)
+		results.Failed(context, "获取微信菜单失败1", err)
 	} else {
 		var data_parameter map[string]interface{}
 		if err := json.Unmarshal([]byte(wxmenu_data), &data_parameter); err == nil {
-			results.Success(context, "获取微信菜单", map[string]interface{}{
-				"name":   wxconfig["name"],
-				"wxmenu": data_parameter,
-			}, nil)
+			if _, ok := data_parameter["errcode"]; ok {
+				DB().Table("client_system_wxconfig").Where("id", wxconfig["id"]).Data(map[string]interface{}{"expires_access_token": 0}).Update()
+				Getmenu(context)
+			} else {
+				results.Success(context, "获取微信菜单", map[string]interface{}{
+					"name":   wxconfig["name"],
+					"wxmenu": data_parameter,
+				}, nil)
+			}
 		}
 	}
-
 }
 
 // 创建微信菜单
@@ -213,6 +217,25 @@ func DelMenu(context *gin.Context) {
 		results.Failed(context, "删除失败", err)
 	} else {
 		results.Success(context, "删除成功！", res2, nil)
+	}
+}
+
+// 获取文章/产品
+func GetArticles(context *gin.Context) {
+	types := context.DefaultQuery("types", "0")
+	//当前用户
+	getuser, _ := context.Get("user")
+	user := getuser.(*utils.UserClaims)
+	var tablename = "client_article_manage"
+	if types == "1" {
+		tablename = "client_product_manage"
+	}
+	//获取站点下的页面
+	list, err := DB().Table(tablename).Where("cuid", user.ClientID).Fields("id,title,des").Order("id desc").Get()
+	if err != nil {
+		results.Failed(context, "获取文章/产品失败", err)
+	} else {
+		results.Success(context, "获取文章/产品", list, nil)
 	}
 }
 
