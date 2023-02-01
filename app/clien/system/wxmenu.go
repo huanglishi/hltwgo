@@ -128,14 +128,39 @@ func SaveMenu(context *gin.Context) {
 		//缓存中存在access_token，直接读取
 		access_token = wxconfig["access_token"].(string)
 	}
+	//处理数据
+	// var numdata []map[string]interface{}
+	// for _, val := range parameter["button"].([]interface{}) {
+	// 	webb, _ := json.Marshal(val)
+	// 	var webjson map[string]interface{}
+	// 	_ = json.Unmarshal(webb, &webjson)
+	// 	if _, ok := webjson["url"]; ok {
+	// 		// webjson["url"] = url.QueryEscape(webjson["url"].(string))
+	// 	}
+	// 	if _, ok := webjson["sub_button"]; ok {
+	// 		twebb, _ := json.Marshal(webjson["sub_button"])
+	// 		var twebjson map[string]interface{}
+	// 		_ = json.Unmarshal(twebb, &twebjson)
+	// 		webjson["sub_button"] = twebjson["list"]
+	// 	}
+	// 	numdata = append(numdata, webjson)
+	// }
+	// addmenu := map[string]interface{}{"button": numdata}
+	// weddbb := JSONMarshalToString(addmenu)
+	// results.Success(context, "创建微信菜单", numdata, nil)
+	// return
 	//获取 菜单接口
-	wxmenu_data, err := Post(fmt.Sprintf("https://api.weixin.qq.com/cgi-bin/menu/create?access_token=%s", access_token), parameter, "")
+	wxmenu_data, err := Post(fmt.Sprintf("https://api.weixin.qq.com/cgi-bin/menu/create?access_token=%s", access_token), parameter["data"].(string), "")
 	if err != nil {
 		results.Failed(context, "获取微信openid失败", err)
 	} else {
 		var data_parameter map[string]interface{}
 		if err := json.Unmarshal([]byte(wxmenu_data), &data_parameter); err == nil {
-			results.Success(context, "创建微信菜单", data_parameter, parameter)
+			if data_parameter["errcode"] != "0" {
+				results.Failed(context, "创建微信菜单失败", data_parameter)
+			} else {
+				results.Success(context, "创建微信菜单成功", data_parameter, parameter)
+			}
 		}
 	}
 }

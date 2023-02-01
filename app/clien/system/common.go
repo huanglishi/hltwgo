@@ -2,11 +2,11 @@ package system
 
 import (
 	"bytes"
-	"encoding/json"
 	"huling/app/model"
 	"io"
 	"io/ioutil"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gohouse/gorose/v2"
@@ -108,7 +108,6 @@ func ArrayMerge(ss ...[]gorose.Data) []gorose.Data {
 
 // 返回错误
 func Get_x(url string) (string, error) {
-
 	// 超时时间：2秒
 	client := &http.Client{Timeout: 3 * time.Second}
 	resp, err := client.Get(url)
@@ -133,12 +132,12 @@ func Get_x(url string) (string, error) {
 // 发送POST请求
 // url:请求地址，data:POST请求提交的数据,contentType:请求体格式，如：application/json
 // content:请求放回的内容
-func Post(url string, data interface{}, contentType string) (string, error) {
+func Post(url string, data string, contentType string) (string, error) {
 	if contentType == "" {
 		contentType = "application/json"
 	}
-	jsonStr, _ := json.Marshal(data)
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
+	payload := strings.NewReader(data)
+	req, err := http.NewRequest("POST", url, payload)
 	req.Header.Add("content-type", contentType)
 	if err != nil {
 		return "", err
