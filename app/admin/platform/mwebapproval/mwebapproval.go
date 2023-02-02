@@ -23,13 +23,16 @@ func Getlist(context *gin.Context) {
 	if title != "" {
 		MDB = MDB.Where("title", "like", "%"+title+"%")
 	}
-	list, err := MDB.Limit(pageSize).Page(pageNo).Order("id asc").Get()
+	list, err := MDB.Limit(pageSize).Page(pageNo).Order("publishtime desc").Get()
 	if err != nil {
 		results.Failed(context, "加载数据失败", err)
 	} else {
 		for _, val := range list {
 			userinfo, _ := DB().Table("merchant_user").Where("id", val["accountID"]).Fields("mobile,name").First()
 			val["userinfo"] = userinfo
+			if val["des"] == "null" {
+				val["des"] = ""
+			}
 		}
 		var totalCount int64
 		totalCount, _ = MDB.Count()
@@ -109,7 +112,7 @@ func ApprovalMweb(context *gin.Context) {
 	body, _ := ioutil.ReadAll(context.Request.Body)
 	var parameter map[string]interface{}
 	_ = json.Unmarshal(body, &parameter)
-	res2, err := DB().Table("merchant_micweb").Where("id", parameter["id"]).Data(map[string]interface{}{"status": parameter["status"],
+	res2, err := DB().Table("client_micweb").Where("id", parameter["id"]).Data(map[string]interface{}{"status": parameter["status"],
 		"updatetime": time.Now().Unix(), "approval_err": parameter["approval_err"]}).Update()
 	if err != nil {
 		results.Failed(context, "更新失败！", err)

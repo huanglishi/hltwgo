@@ -47,7 +47,7 @@ func GetHome(context *gin.Context) {
 			pagedata["micweb"] = micweb
 			//判断是否审核
 			pagedata["updatetime"] = time.Now().Unix() - micweb["updatetime"].(int64)
-			if micweb["status"] == 2 {
+			if micweb["status"].(int64) == 2 {
 				pagedata["audit"] = true
 			} else {
 				pagedata["audit"] = false
@@ -99,6 +99,12 @@ func GetPage(context *gin.Context) {
 					_ = json.Unmarshal([]byte(micweb["footer_tabbar"].(string)), &parameterf)
 					micweb["footer_tabbar"] = parameterf
 				}
+			}
+			//判断是否审核
+			if micweb["status"].(int64) == 2 {
+				pagedata["audit"] = true
+			} else {
+				pagedata["audit"] = false
 			}
 			//获取微信支付配置
 			paymentconfig, _ := DB().Table("client_system_paymentconfig").Where("cuid", micweb["cuid"]).Fields("mchAPIv3Key,appId").First()
