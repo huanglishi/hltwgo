@@ -11,7 +11,7 @@ import (
 func GetArticle(context *gin.Context) {
 	id := context.DefaultQuery("id", "")
 	micweb_id := context.DefaultQuery("micweb_id", "")
-	data, err := DB().Table("client_article_manage").Where("id", id).Fields("id,type,title,des,author,image,releasetime,content").First()
+	data, err := DB().Table("client_article_manage").Where("id", id).Fields("id,type,title,des,type,link,author,image,releasetime,content").First()
 	if err != nil {
 		results.Failed(context, "获取文章详情内容失败", err)
 	} else {
